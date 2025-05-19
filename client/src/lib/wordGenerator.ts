@@ -39,39 +39,28 @@ export async function generateWordDocument(excelData: ExcelData): Promise<void> 
   
   // Create the document with table settings
   const doc = new Document({
-    title: "MÓVEIS BONAFÉ - LISTA DE ENTREGA",
-    description: "Documento gerado automaticamente para lista de entrega",
-    sections: [
-      {
-        properties: {},
-        children: [
-          // Título principal do documento
-          new Paragraph({
-            alignment: AlignmentType.CENTER,
-            spacing: {
-              after: 400
-            },
-            children: [
-              new TextRun({
-                text: "MÓVEIS BONAFÉ - LISTA DE ENTREGA",
-                bold: true,
-                color: "0070C0",
-                size: 32, // 16pt
-                font: fontName
-              })
-            ]
-          }),
-          // Insere todas as tabelas das seções
-          ...sections.flatMap(section => section.children)
-        ]
-      }
-    ]
+    sections: sections,
+    styles: {
+      paragraphStyles: [
+        {
+          id: "Normal",
+          name: "Normal",
+          basedOn: "Normal",
+          next: "Normal",
+          quickFormat: true,
+          run: {
+            font: fontName,
+            size: fontSize,
+          }
+        }
+      ]
+    }
   });
   
   try {
     // Generate and save the file - using Blob directly for browser environment
     const blob = await Packer.toBlob(doc);
-    saveAs(blob, `Lista_Entrega_Moveis_Bonafe_${new Date().toISOString().slice(0,10)}.docx`);
+    saveAs(blob, `Lista_${new Date().toISOString().slice(0,10)}.docx`);
   } catch (error) {
     console.error("Erro ao gerar documento:", error);
     throw new Error("Erro ao gerar o documento. Por favor, tente novamente.");
@@ -236,79 +225,23 @@ function createPageTable(leftBlocks: DataBlock[], rightBlocks: DataBlock[], opti
   const firstLeftName = leftBlocks.length > 0 ? truncateNameText(leftBlocks[0].name) : '';
   const firstRightName = rightBlocks.length > 0 ? truncateNameText(rightBlocks[0].name) : '';
   
-  // Create header row with names in the first row - Este é o modelo LISTA esperado
+  // Create header row with names in the first row
   const headerRow = new TableRow({
-    tableHeader: true, // Marca como cabeçalho de tabela para formatação especial
     height: {
       value: options.rowHeight,
       rule: HeightRule.EXACT
     },
     children: [
-      // Lado esquerdo
-      createTableCell(firstLeftName, options, { 
-        isHeader: true, 
-        width: options.nameColumnWidth, 
-        bold: true, 
-        alignLeft: true,
-        highlight: undefined
-      }),
-      createTableCell('CE', options, { 
-        isHeader: true, 
-        width: options.columnWidth, 
-        bold: true,
-        highlight: undefined 
-      }),
-      createTableCell('MG', options, { 
-        isHeader: true, 
-        width: options.columnWidth,
-        bold: true,
-        highlight: undefined
-      }),
-      createTableCell('TB', options, { 
-        isHeader: true, 
-        width: options.columnWidth, 
-        bold: true, 
-        highlight: 'yellow' 
-      }),
-      createTableCell('IM', options, { 
-        isHeader: true, 
-        width: options.columnWidth, 
-        bold: true, 
-        highlight: 'green' 
-      }),
-      
-      // Lado direito
-      createTableCell(firstRightName, options, { 
-        isHeader: true, 
-        width: options.nameColumnWidth, 
-        bold: true, 
-        alignLeft: true,
-        highlight: undefined
-      }),
-      createTableCell('CE', options, { 
-        isHeader: true, 
-        width: options.columnWidth, 
-        bold: true,
-        highlight: undefined
-      }),
-      createTableCell('MG', options, { 
-        isHeader: true, 
-        width: options.columnWidth,
-        bold: true,
-        highlight: undefined
-      }),
-      createTableCell('TB', options, { 
-        isHeader: true, 
-        width: options.columnWidth, 
-        bold: true, 
-        highlight: 'yellow' 
-      }),
-      createTableCell('IM', options, { 
-        isHeader: true, 
-        width: options.columnWidth, 
-        bold: true, 
-        highlight: 'green' 
-      }),
+      createTableCell(firstLeftName, options, { isHeader: true, width: options.nameColumnWidth, bold: true, alignLeft: true }),
+      createTableCell('CE', options, { isHeader: true, width: options.columnWidth, bold: false }),
+      createTableCell('MG', options, { isHeader: true, width: options.columnWidth }),
+      createTableCell('TB', options, { isHeader: true, width: options.columnWidth, bold: true, highlight: 'yellow' }),
+      createTableCell('IM', options, { isHeader: true, width: options.columnWidth, bold: true, highlight: 'green' }),
+      createTableCell(firstRightName, options, { isHeader: true, width: options.nameColumnWidth, bold: true, alignLeft: true }),
+      createTableCell('CE', options, { isHeader: true, width: options.columnWidth, bold: false }),
+      createTableCell('MG', options, { isHeader: true, width: options.columnWidth }),
+      createTableCell('TB', options, { isHeader: true, width: options.columnWidth, bold: true, highlight: 'yellow' }),
+      createTableCell('IM', options, { isHeader: true, width: options.columnWidth, bold: true, highlight: 'green' }),
     ],
   });
   
@@ -465,18 +398,10 @@ function createPageTable(leftBlocks: DataBlock[], rightBlocks: DataBlock[], opti
   if (hasRealContent && dataRows.length > 0) {
     return new Table({
       width: {
-        size: 100,  // 100% da largura disponível
+        size: 120,  // Setting to 120% as requested
         type: WidthType.PERCENTAGE,
       },
-      alignment: AlignmentType.CENTER, // Centralizado
-      borders: {
-        top: { style: BorderStyle.SINGLE, size: 1 },
-        bottom: { style: BorderStyle.SINGLE, size: 1 },
-        left: { style: BorderStyle.SINGLE, size: 1 },
-        right: { style: BorderStyle.SINGLE, size: 1 },
-        insideHorizontal: { style: BorderStyle.SINGLE, size: 1 },
-        insideVertical: { style: BorderStyle.SINGLE, size: 1 }
-      },
+      alignment: AlignmentType.CENTER, // Centralizado conforme a imagem
       rows: [headerRow, ...dataRows],
     });
   }
@@ -559,17 +484,6 @@ function createTableCell(text: string, options: {
   const shouldAlignLeft = cellOptions.alignLeft || 
     (!cellOptions.isHeader && text !== '' && (isNaN(Number(text)) || text.trim() === ''));
   
-  // Formatação especial para colunas TB e IM conforme MODELO LISTA
-  let shading = undefined;
-  let textColor = undefined;
-  
-  if (cellOptions.highlight === 'yellow') {
-    shading = 'FFFF00'; // Amarelo para TB
-  } else if (cellOptions.highlight === 'green') {
-    shading = '00B050'; // Verde para IM
-    textColor = 'FFFFFF'; // Texto branco para IM
-  }
-  
   // Configuração da célula
   const tableCellConfig: any = {
     width: {
@@ -582,9 +496,6 @@ function createTableCell(text: string, options: {
       left: { style: BorderStyle.SINGLE, size: 1 },
       right: { style: BorderStyle.SINGLE, size: 1 },
     },
-    shading: shading ? {
-      fill: shading
-    } : undefined,
     children: [
       new Paragraph({
         alignment: shouldAlignLeft ? AlignmentType.LEFT : AlignmentType.CENTER,
@@ -594,7 +505,7 @@ function createTableCell(text: string, options: {
             font: options.fontName,
             size: options.fontSize,
             bold: isBold,
-            color: textColor,
+            highlight: cellOptions.highlight,
           }),
         ],
       }),

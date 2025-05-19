@@ -7,9 +7,9 @@ channel = "stable-24_05"
 packages = ["zip"]
 
 [deployment]
-deploymentTarget = "static"
+deploymentTarget = "autoscale"
 build = ["sh", "-c", "npx vite build --outDir dist/github-pages"]
-publicDir = "dist"
+run = ["sh", "-c", "npx serve -s dist/github-pages"]
 
 [[ports]]
 localPort = 5000
