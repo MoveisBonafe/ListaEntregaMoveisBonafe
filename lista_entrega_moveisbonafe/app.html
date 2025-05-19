@@ -735,7 +735,7 @@
       
       // Document settings
       const options = {
-        title: 'Lista de Entrega - Móveis Bonafé',
+        title: 'MÓVEIS BONAFÉ - LISTA DE ENTREGA',
         creator: 'Gerador de Lista de Entrega',
         description: 'Documento gerado automaticamente',
         styles: {
@@ -766,49 +766,53 @@
                 size: 24, // 12pt
                 bold: true,
                 font: 'Arial',
+                color: '#0070c0', // Azul para o título principal
               },
               paragraph: {
                 spacing: {
                   before: 240, // 12pt
                   after: 120, // 6pt
                 },
-              },
-            },
-            {
-              id: 'Heading2',
-              name: 'Heading 2',
-              basedOn: 'Normal',
-              next: 'Normal',
-              quickFormat: true,
-              run: {
-                size: 22, // 11pt
-                bold: true,
-                font: 'Arial',
-              },
-              paragraph: {
-                spacing: {
-                  before: 240, // 12pt
-                  after: 120, // 6pt
-                },
+                alignment: AlignmentType.CENTER,
               },
             },
           ],
         },
       };
       
-      // Calculate page layout
-      const { processedData, totalProducts } = excelData;
-      const sections = createDocumentSections(processedData, {
-        maxLinesPerPage: 40,
-        includeTotal: !!totalProducts,
-        totalProducts: totalProducts || []
-      });
-      
       // Create document with sections
       const doc = new Document(options);
+      
+      // Add title
+      const title = new Paragraph({
+        text: "MÓVEIS BONAFÉ - LISTA DE ENTREGA",
+        heading: HeadingLevel.HEADING_1,
+        alignment: AlignmentType.CENTER,
+      });
+      
+      // Process data for document
+      const { processedData } = excelData;
+      
+      // Group blocks in pairs (left and right columns)
+      const pageBlocks = [];
+      for (let i = 0; i < processedData.length; i += 2) {
+        const leftBlock = processedData[i];
+        const rightBlock = i + 1 < processedData.length ? processedData[i + 1] : null;
+        pageBlocks.push({ leftBlock, rightBlock });
+      }
+      
+      // Collection of tables to add to the document
+      const documentTables = [];
+      
+      // Create tables for each page
+      for (const { leftBlock, rightBlock } of pageBlocks) {
+        documentTables.push(createClientPairTable(leftBlock, rightBlock));
+      }
+      
+      // Add all content to the document
       doc.addSection({
         properties: {},
-        children: sections.reduce((acc, section) => [...acc, ...section.children], [])
+        children: [title, ...documentTables]
       });
       
       // Generate Word document
@@ -816,306 +820,172 @@
       saveAs(buffer, `Lista_Entrega_${new Date().toISOString().slice(0, 10)}.docx`);
     }
 
-    function createDocumentSections(blocks, options) {
-      const { maxLinesPerPage, includeTotal, totalProducts } = options;
-      const sections = [];
-      
-      // Calculate the size of each block (number of lines it will occupy)
-      const calculateBlockSize = (block) => {
-        // 1 line for title + 1 line for each product
-        return 1 + block.products.length;
-      };
-      
-      // Create pages with blocks divided into left and right columns
-      let currentPageLeftBlocks = [];
-      let currentPageRightBlocks = [];
-      let leftColumnLines = 0;
-      let rightColumnLines = 0;
-      
-      // Add all blocks to left or right column
-      for (let i = 0; i < blocks.length; i++) {
-        const block = blocks[i];
-        const blockSize = calculateBlockSize(block);
-        
-        // Determine which column to add the block to
-        if (leftColumnLines <= rightColumnLines) {
-          // Add to left column
-          if (leftColumnLines + blockSize > maxLinesPerPage) {
-            // Current left column is full, create a new page
-            sections.push(createPageTable(currentPageLeftBlocks, currentPageRightBlocks, { includeTotal: false }));
-            currentPageLeftBlocks = [block];
-            currentPageRightBlocks = [];
-            leftColumnLines = blockSize;
-            rightColumnLines = 0;
-          } else {
-            // Add to current left column
-            currentPageLeftBlocks.push(block);
-            leftColumnLines += blockSize;
-          }
-        } else {
-          // Add to right column
-          if (rightColumnLines + blockSize > maxLinesPerPage) {
-            // Current right column is full, create a new page
-            sections.push(createPageTable(currentPageLeftBlocks, currentPageRightBlocks, { includeTotal: false }));
-            currentPageLeftBlocks = [block];
-            currentPageRightBlocks = [];
-            leftColumnLines = blockSize;
-            rightColumnLines = 0;
-          } else {
-            // Add to current right column
-            currentPageRightBlocks.push(block);
-            rightColumnLines += blockSize;
-          }
-        }
-      }
-      
-      // Create the last regular page
-      if (currentPageLeftBlocks.length > 0 || currentPageRightBlocks.length > 0) {
-        sections.push(createPageTable(currentPageLeftBlocks, currentPageRightBlocks, { includeTotal: false }));
-      }
-      
-      // Add the TOTAL section if needed
-      if (includeTotal && totalProducts.length > 0) {
-        // Create a new page for the TOTAL section
-        const totalBlock = {
-          name: 'TOTAL',
-          products: totalProducts
-        };
-        sections.push(createPageTable([totalBlock], [], { includeTotal: true }));
-      }
-      
-      return sections;
-    }
-
-    function createPageTable(leftBlocks, rightBlocks, options) {
+    // Create a table for a pair of client blocks (left and right)
+    function createClientPairTable(leftBlock, rightBlock) {
       const docx = window.docx;
-      const { Table, TableRow, TableCell, Paragraph, TextRun, BorderStyle, WidthType } = docx;
+      const { Table, TableRow, TableCell, Paragraph, TextRun, BorderStyle, WidthType, AlignmentType } = docx;
       
-      // Process blocks into rows
-      const leftRows = processBlocksToRows(leftBlocks);
-      const rightRows = processBlocksToRows(rightBlocks);
+      // Create header row for the table (client names with CE, MG, TB, IM columns)
+      const headerRow = new TableRow({
+        children: [
+          // Left client name and columns
+          createHeaderCell(`${leftBlock.name}`, { bold: true, size: 20 }),
+          createHeaderCell('CE', { bold: true, size: 20 }),
+          createHeaderCell('MG', { bold: true, size: 20 }),
+          createHeaderCell('TB', { bold: true, size: 20 }),
+          createHeaderCell('IM', { bold: true, size: 20 }),
+          
+          // Right client name and columns (if exists)
+          createHeaderCell(rightBlock ? `${rightBlock.name}` : '', { bold: true, size: 20 }),
+          createHeaderCell(rightBlock ? 'CE' : '', { bold: true, size: 20 }),
+          createHeaderCell(rightBlock ? 'MG' : '', { bold: true, size: 20 }),
+          createHeaderCell(rightBlock ? 'TB' : '', { bold: true, size: 20 }),
+          createHeaderCell(rightBlock ? 'IM' : '', { bold: true, size: 20 }),
+        ],
+      });
       
-      // Adjust rows to match in length
-      const maxRows = Math.max(leftRows.length, rightRows.length);
-      while (leftRows.length < maxRows) leftRows.push([new Paragraph({})]);
-      while (rightRows.length < maxRows) rightRows.push([new Paragraph({})]);
+      // Determine how many rows we need (max of left and right products)
+      const leftProducts = leftBlock.products || [];
+      const rightProducts = rightBlock ? (rightBlock.products || []) : [];
+      const rowCount = Math.max(leftProducts.length, rightProducts.length);
       
-      // Create table rows
-      const tableRows = [];
-      
-      // Add header row for TOTAL section
-      if (options.includeTotal) {
-        tableRows.push(new TableRow({
-          children: [
-            createTableCell('PRODUTO', { bold: true, size: 20 }, { isHeader: true }),
-            createTableCell('CE', { bold: true, size: 20 }, { isHeader: true, alignLeft: false }),
-            createTableCell('MG', { bold: true, size: 20 }, { isHeader: true, alignLeft: false }),
-            createTableCell('TB', { bold: true, size: 20 }, { isHeader: true, alignLeft: false }),
-            createTableCell('IM', { bold: true, size: 20 }, { isHeader: true, alignLeft: false }),
-            // Empty cells for right side (if any)
-            createTableCell('', { size: 20 }, { isHeader: true }),
-            createTableCell('', { size: 20 }, { isHeader: true }),
-            createTableCell('', { size: 20 }, { isHeader: true }),
-            createTableCell('', { size: 20 }, { isHeader: true }),
-            createTableCell('', { size: 20 }, { isHeader: true }),
-          ],
-        }));
-      }
-      
-      // Add content rows
-      for (let i = 0; i < maxRows; i++) {
-        const leftRowCells = leftRows[i] || [new Paragraph({})];
-        const rightRowCells = rightRows[i] || [new Paragraph({})];
+      // Create content rows
+      const contentRows = [];
+      for (let i = 0; i < rowCount; i++) {
+        const leftProduct = i < leftProducts.length ? leftProducts[i] : null;
+        const rightProduct = i < rightProducts.length ? rightProducts[i] : null;
         
-        tableRows.push(new TableRow({
-          children: [
-            ...leftRowCells.map((cell, idx) => {
-              // For the first cell (product name)
-              if (idx === 0) {
-                return new TableCell({
-                  children: [cell],
-                  borders: {
-                    top: { style: BorderStyle.NONE },
-                    bottom: { style: BorderStyle.NONE },
-                    left: { style: BorderStyle.NONE },
-                    right: { style: BorderStyle.NONE },
-                  },
-                });
-              } 
-              // For value cells
-              else {
-                return new TableCell({
-                  children: [cell],
-                  borders: {
-                    top: { style: BorderStyle.NONE },
-                    bottom: { style: BorderStyle.NONE },
-                    left: { style: BorderStyle.NONE },
-                    right: { style: BorderStyle.NONE },
-                  },
-                  width: {
-                    size: 600,
-                    type: WidthType.DXA,
-                  },
-                });
-              }
-            }),
-            // Empty cell as separator between left and right columns
-            new TableCell({
-              children: [new Paragraph({})],
-              borders: {
-                top: { style: BorderStyle.NONE },
-                bottom: { style: BorderStyle.NONE },
-                left: { style: BorderStyle.NONE },
-                right: { style: BorderStyle.NONE },
-              },
-              width: {
-                size: 400,
-                type: WidthType.DXA,
-              },
-            }),
-            ...rightRowCells.map((cell, idx) => {
-              // For the first cell (product name)
-              if (idx === 0) {
-                return new TableCell({
-                  children: [cell],
-                  borders: {
-                    top: { style: BorderStyle.NONE },
-                    bottom: { style: BorderStyle.NONE },
-                    left: { style: BorderStyle.NONE },
-                    right: { style: BorderStyle.NONE },
-                  },
-                });
-              } 
-              // For value cells
-              else {
-                return new TableCell({
-                  children: [cell],
-                  borders: {
-                    top: { style: BorderStyle.NONE },
-                    bottom: { style: BorderStyle.NONE },
-                    left: { style: BorderStyle.NONE },
-                    right: { style: BorderStyle.NONE },
-                  },
-                  width: {
-                    size: 600,
-                    type: WidthType.DXA,
-                  },
-                });
-              }
-            }),
-          ],
-        }));
+        contentRows.push(createProductRow(leftProduct, rightProduct));
       }
       
-      // Create the table
+      // Create the complete table
       const table = new Table({
-        rows: tableRows,
+        rows: [headerRow, ...contentRows],
         width: {
           size: 100,
           type: WidthType.PERCENTAGE,
         },
       });
       
-      return {
-        properties: {},
-        children: [table],
-      };
+      // Add spacing after the table
+      const spacing = new Paragraph({
+        text: "",
+        spacing: {
+          after: 200,
+        },
+      });
+      
+      return table;
     }
-
-    function processBlocksToRows(blocks) {
+    
+    // Create a row with product data for both left and right clients
+    function createProductRow(leftProduct, rightProduct) {
       const docx = window.docx;
-      const { Paragraph, TextRun, AlignmentType } = docx;
+      const { TableRow, TableCell, Paragraph, TextRun, BorderStyle, AlignmentType } = docx;
       
-      const rows = [];
+      return new TableRow({
+        children: [
+          // Left product data
+          createDataCell(leftProduct ? leftProduct.name : ''),
+          createDataCell(leftProduct ? formatNumberWithLeadingZeros(leftProduct.values[0]) : ''),
+          createDataCell(leftProduct ? formatNumberWithLeadingZeros(leftProduct.values[1]) : ''),
+          createDataCell(leftProduct ? formatNumberWithLeadingZeros(leftProduct.values[2]) : ''),
+          createImCell(leftProduct ? formatNumberWithLeadingZeros(leftProduct.values[3]) : ''),
+          
+          // Right product data
+          createDataCell(rightProduct ? rightProduct.name : ''),
+          createDataCell(rightProduct ? formatNumberWithLeadingZeros(rightProduct.values[0]) : ''),
+          createDataCell(rightProduct ? formatNumberWithLeadingZeros(rightProduct.values[1]) : ''),
+          createDataCell(rightProduct ? formatNumberWithLeadingZeros(rightProduct.values[2]) : ''),
+          createImCell(rightProduct ? formatNumberWithLeadingZeros(rightProduct.values[3]) : ''),
+        ],
+      });
+    }
+    
+    // Create a header cell with black borders
+    function createHeaderCell(text, textOptions) {
+      const docx = window.docx;
+      const { TableCell, Paragraph, TextRun, BorderStyle, AlignmentType } = docx;
       
-      for (const block of blocks) {
-        // Add block title
-        rows.push([
+      const textOpts = textOptions || {};
+      
+      return new TableCell({
+        children: [
           new Paragraph({
             children: [
               new TextRun({
-                text: block.name,
-                bold: true,
-                size: 22, // 11pt
+                text: text,
+                bold: textOpts.bold || false,
+                size: textOpts.size || 20,
               }),
             ],
+            alignment: AlignmentType.CENTER,
           }),
-          new Paragraph({}),
-          new Paragraph({}),
-          new Paragraph({}),
-          new Paragraph({}),
-        ]);
-        
-        // Add each product
-        for (const product of block.products) {
-          const cells = [
-            new Paragraph({
-              children: [
-                new TextRun({
-                  text: product.name,
-                  size: 20, // 10pt
-                }),
-              ],
-            }),
-          ];
-          
-          // Add values (CE, MG, TB, IM)
-          for (const value of product.values) {
-            cells.push(
-              new Paragraph({
-                children: [
-                  new TextRun({
-                    text: value !== null ? formatNumberWithLeadingZeros(value) : '000',
-                    size: 20, // 10pt
-                  }),
-                ],
-                alignment: AlignmentType.RIGHT,
-              })
-            );
-          }
-          
-          rows.push(cells);
-        }
-      }
-      
-      return rows;
-    }
-
-    function createTableCell(text, textOptions, cellOptions) {
-      const docx = window.docx;
-      const { TableCell, Paragraph, TextRun, BorderStyle, WidthType, HeadingLevel, AlignmentType } = docx;
-      
-      const options = cellOptions || {};
-      const textOpts = textOptions || {};
-      
-      // Create text content
-      const textRun = new TextRun({
-        text: text,
-        bold: textOpts.bold || false,
-        size: textOpts.size || 20, // Default to 10pt
-      });
-      
-      // Create paragraph with the text
-      const paragraph = new Paragraph({
-        children: [textRun],
-        heading: options.isHeader ? HeadingLevel.HEADING_3 : undefined,
-        alignment: options.alignLeft === false ? AlignmentType.RIGHT : AlignmentType.LEFT,
-      });
-      
-      // Create the table cell
-      return new TableCell({
-        children: [paragraph],
+        ],
         borders: {
-          top: { style: BorderStyle.NONE },
-          bottom: { style: BorderStyle.NONE },
-          left: { style: BorderStyle.NONE },
-          right: { style: BorderStyle.NONE },
+          top: { style: BorderStyle.SINGLE, size: 1, color: "#000000" },
+          bottom: { style: BorderStyle.SINGLE, size: 1, color: "#000000" },
+          left: { style: BorderStyle.SINGLE, size: 1, color: "#000000" },
+          right: { style: BorderStyle.SINGLE, size: 1, color: "#000000" },
         },
-        width: options.width ? {
-          size: options.width,
-          type: WidthType.DXA,
-        } : undefined,
-        columnSpan: options.colSpan,
+        verticalAlign: docx.VerticalAlign.CENTER,
+        shading: text === 'TB' ? { fill: '#FFFF00' } : undefined, // Yellow highlight for TB column
+      });
+    }
+    
+    // Create a data cell with borders
+    function createDataCell(text) {
+      const docx = window.docx;
+      const { TableCell, Paragraph, TextRun, BorderStyle, AlignmentType } = docx;
+      
+      return new TableCell({
+        children: [
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: text,
+                size: 20,
+              }),
+            ],
+            alignment: AlignmentType.CENTER,
+          }),
+        ],
+        borders: {
+          top: { style: BorderStyle.SINGLE, size: 1, color: "#000000" },
+          bottom: { style: BorderStyle.SINGLE, size: 1, color: "#000000" },
+          left: { style: BorderStyle.SINGLE, size: 1, color: "#000000" },
+          right: { style: BorderStyle.SINGLE, size: 1, color: "#000000" },
+        },
+        verticalAlign: docx.VerticalAlign.CENTER,
+      });
+    }
+    
+    // Create an IM cell with green highlight
+    function createImCell(text) {
+      const docx = window.docx;
+      const { TableCell, Paragraph, TextRun, BorderStyle, AlignmentType } = docx;
+      
+      return new TableCell({
+        children: [
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: text,
+                size: 20,
+                color: '#FFFFFF', // White text for contrast on green
+              }),
+            ],
+            alignment: AlignmentType.CENTER,
+          }),
+        ],
+        borders: {
+          top: { style: BorderStyle.SINGLE, size: 1, color: "#000000" },
+          bottom: { style: BorderStyle.SINGLE, size: 1, color: "#000000" },
+          left: { style: BorderStyle.SINGLE, size: 1, color: "#000000" },
+          right: { style: BorderStyle.SINGLE, size: 1, color: "#000000" },
+        },
+        verticalAlign: docx.VerticalAlign.CENTER,
+        shading: { fill: '#00B050' }, // Green highlight for IM column values
       });
     }
 
