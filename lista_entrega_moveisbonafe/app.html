@@ -1173,10 +1173,9 @@
 </body>
 </html>`;
       
-      // Open the HTML in a new window
-      const newWindow = window.open('');
-      newWindow.document.write(htmlContent);
-      newWindow.document.close();
+      // Save as HTML file for download
+      const blob = new Blob([htmlContent], { type: 'text/html' });
+      saveAs(blob, `Lista_Entrega_${new Date().toISOString().slice(0, 10)}.html`);
     }
 
     // Main application code
