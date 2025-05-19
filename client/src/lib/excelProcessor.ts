@@ -85,14 +85,14 @@ function processData(jsonData: any[][]): DataBlock[] {
     if (values.every(val => val === null || val === 0)) continue;
     
     // Check if this is a new name or continuing with products
-    if (currentBlock && currentBlock.name === name) {
-      // Add product to existing block
+    if (!name && currentBlock) {
+      // Se não tem nome na linha atual, adiciona produto ao bloco atual
       currentBlock.products.push({
         name: product,
         values
       });
-    } else {
-      // Start a new block
+    } else if (name) {
+      // Se tem nome, inicia um novo bloco
       if (currentBlock) {
         blocks.push(currentBlock);
       }
