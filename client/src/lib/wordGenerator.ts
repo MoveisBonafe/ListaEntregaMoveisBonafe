@@ -22,8 +22,8 @@ export async function generateWordDocument(excelData: ExcelData): Promise<void> 
   // Constants for document formatting
   const fontName = 'Times New Roman';
   const fontSize = 24; // 12pt = 24 half-points in docx
-  // Altura da linha em twips (1 cm = 567 twips, então 0.6cm = 340 twips aproximadamente)
-  const rowHeight = 340;
+  // Altura da linha em twips (1 cm = 567 twips, então 0.5cm = 283.5 twips aproximadamente)
+  const rowHeight = 284; // Exatamente 0.5cm
   const columnWidth = 1000; // 1.0cm for number columns
   const nameColumnWidth = 5000; // 5.0cm for name columns
   
