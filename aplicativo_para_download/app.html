@@ -423,8 +423,14 @@
     
     .doc-table th, .doc-table td { 
       border: 1px solid black; 
-      padding: 4px; 
+      padding: 2px 4px; 
       text-align: center; 
+      height: 0.5cm; /* Altura exata de 0,5cm */
+      line-height: 0.5cm; /* Altura da linha igual a 0,5cm */
+      box-sizing: border-box; /* Para garantir que o padding não afete a altura total */
+      overflow: hidden; /* Evitar que o conteúdo ultrapasse a altura */
+      white-space: nowrap; /* Evitar quebra de linha */
+      font-size: 10pt; /* Tamanho da fonte adequado para a altura da linha */
     }
     
     .doc-header { 
@@ -784,8 +790,14 @@
     }
     th, td { 
       border: 1px solid black; 
-      padding: 4px; 
-      text-align: center; 
+      padding: 2px 4px; 
+      text-align: center;
+      height: 0.5cm; /* Altura exata de 0,5cm */
+      line-height: 0.5cm; /* Altura da linha igual a 0,5cm */
+      box-sizing: border-box; /* Para garantir que o padding não afete a altura total */
+      overflow: hidden; /* Evitar que o conteúdo ultrapasse a altura */
+      white-space: nowrap; /* Evitar quebra de linha */
+      font-size: 10pt; /* Tamanho da fonte adequado para a altura da linha */
     }
     .header { 
       font-weight: bold; 
