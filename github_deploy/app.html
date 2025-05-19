@@ -904,8 +904,15 @@
       const tableRows = [];
       
       // Add header row for TOTAL section
+      // Configuração: altura da linha exatamente 0,5cm (284 twips)
+      const lineHeight = 284;
+      
       if (options.includeTotal) {
         tableRows.push(new TableRow({
+          height: {
+            value: lineHeight,
+            rule: "exact"
+          },
           children: [
             createTableCell('PRODUTO', { bold: true, size: 20 }, { isHeader: true }),
             createTableCell('CE', { bold: true, size: 20 }, { isHeader: true, alignLeft: false }),
@@ -928,6 +935,10 @@
         const rightRowCells = rightRows[i] || [new Paragraph({})];
         
         tableRows.push(new TableRow({
+          height: {
+            value: lineHeight,
+            rule: "exact"
+          },
           children: [
             ...leftRowCells.map((cell, idx) => {
               // For the first cell (product name)
