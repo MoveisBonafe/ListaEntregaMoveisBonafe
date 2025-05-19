@@ -8,7 +8,7 @@ packages = ["zip"]
 
 [deployment]
 deploymentTarget = "static"
-build = ["sh", "-c", "npx vite build --outDir dist"]
+build = ["sh", "-c", "npx vite build"]
 publicDir = "dist"
 run = ["sh", "-c", ""]
 
