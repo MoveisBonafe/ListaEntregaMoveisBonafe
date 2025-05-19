@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Móveis Bonafé - Gerador de Lista de Entrega</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #ffc107;
+      --primary-dark: #ffb300;
+      --secondary: #000;
+      --text: #333;
+      --text-light: #666;
+      --bg: #f9f9f9;
+      --white: #fff;
+      --border: #e0e0e0;
+      --shadow: 0 4px 6px rgba(0,0,0,0.05);
+      --radius: 8px;
+    }
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      font-family: 'Poppins', sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    header {
+      padding: 1.5rem 0;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      border-bottom: 1px solid var(--border);
+      background-color: var(--white);
+    }
+    
+    .container {
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 1rem;
+    }
+    
+    .header-content {
+      text-align: center;
+    }
+    
+    .logo {
+      font-weight: bold;
+      text-transform: uppercase;
+      background: linear-gradient(to right, var(--secondary), var(--primary));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      font-size: 2rem;
+      letter-spacing: -0.5px;
+    }
+    
+    .divider {
+      height: 2px;
+      width: 100px;
+      background-color: var(--primary);
+      margin: 0.5rem auto 0.25rem;
+    }
+    
+    .tagline {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      font-weight: 500;
+      color: var(--secondary);
+    }
+    
+    main {
+      flex: 1;
+      padding: 2rem 0;
+    }
+    
+    .card {
+      background: var(--white);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 1.5rem;
+      margin: 0 auto;
+      max-width: 800px;
+    }
+    
+    h1, h2 {
+      margin-bottom: 1rem;
+    }
+    
+    .btn {
+      display: inline-block;
+      background-color: var(--primary);
+      color: var(--secondary);
+      padding: 0.75rem 1.5rem;
+      border-radius: 4px;
+      text-decoration: none;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      border: none;
+      cursor: pointer;
+      font-size: 0.875rem;
+      margin: 0.5rem 0;
+    }
+    
+    .btn:hover {
+      background-color: var(--primary-dark);
+      transform: translateY(-2px);
+    }
+    
+    .section {
+      margin-bottom: 2rem;
+    }
+    
+    footer {
+      text-align: center;
+      padding: 1.5rem 0;
+      color: var(--text-light);
+      font-size: 0.75rem;
+      background-color: var(--white);
+      border-top: 1px solid var(--border);
+      margin-top: auto;
+    }
+    
+    /* Estilos para documentos gerados */
+    .document-preview {
+      border: 1px solid #ddd;
+      padding: 15px;
+      margin-top: 1rem;
+      background-color: white;
+    }
+    
+    table { 
+      border-collapse: collapse; 
+      width: 100%; 
+      margin-bottom: 20px; 
+    }
+    
+    th, td { 
+      border: 1px solid black; 
+      padding: 4px; 
+      text-align: center; 
+    }
+    
+    .header { 
+      font-weight: bold; 
+      background-color: #f2f2f2; 
+    }
+    
+    .client-name { 
+      font-weight: bold; 
+      text-align: left; 
+    }
+    
+    .tb-header { 
+      background-color: yellow; 
+    }
+    
+    .im-cell { 
+      background-color: green; 
+      color: white; 
+    }
+    
+    .document-title { 
+      text-align: center; 
+      color: #0070c0; 
+      margin-bottom: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <div class="header-content">
+        <h1 class="logo">Móveis Bonafé</h1>
+        <div class="divider"></div>
+        <span class="tagline">Lista de Entrega</span>
+      </div>
+    </div>
+  </header>
+  
+  <main>
+    <div class="container">
+      <div class="card">
+        <div class="section">
+          <h1>Gerador de Lista de Entrega</h1>
+          <p>Esta é uma versão simplificada do gerador de listas para o GitHub Pages.</p>
+          <p>Clique no botão abaixo para ver o modelo de documento com o formato exato.</p>
+          <a href="modelo-documento.html" class="btn" target="_blank">Ver Modelo de Documento</a>
+        </div>
+        
+        <div class="section">
+          <h2>Exemplos de Documentos</h2>
+          <div id="document-examples">
+            <div class="document-preview">
+              <h2 class="document-title">MÓVEIS BONAFÉ - LISTA DE ENTREGA</h2>
+              
+              <table>
+                <tr class="header">
+                  <th class="client-name">Tiete-Capricholar Moveis E</th>
+                  <th>CE</th>
+                  <th>MG</th>
+                  <th class="tb-header">TB</th>
+                  <th>IM</th>
+                  <th class="client-name">Aracoiaba Da Serra-</th>
+                  <th>CE</th>
+                  <th>MG</th>
+                  <th class="tb-header">TB</th>
+                  <th>IM</th>
+                </tr>
+                <tr>
+                  <td>Cadeira Alta</td>
+                  <td>28</td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td>Cadeira Alta</td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td class="im-cell">20</td>
+                </tr>
+                <tr>
+                  <td>Cadeira Comum</td>
+                  <td>16</td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td>Mesa 0,70 X 0,45</td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td class="im-cell">03</td>
+                </tr>
+              </table>
+              
+              <a href="modelo-documento.html" class="btn" target="_blank">Ver Documento Completo</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+  
+  <footer>
+    <div class="container">
+      &copy; 2025 Móveis Bonafé. Todos os direitos reservados.
+    </div>
+  </footer>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Script é simples para garantir compatibilidade com GitHub Pages
+      console.log('Página carregada com sucesso no GitHub Pages');
+    });
+  </script>
+</body>
+</html>
