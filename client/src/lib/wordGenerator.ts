@@ -45,6 +45,7 @@ export async function generateWordDocument(excelData: ExcelData): Promise<void> 
       {
         properties: {},
         children: [
+          // Título principal do documento
           new Paragraph({
             alignment: AlignmentType.CENTER,
             spacing: {
@@ -60,38 +61,11 @@ export async function generateWordDocument(excelData: ExcelData): Promise<void> 
               })
             ]
           }),
+          // Insere todas as tabelas das seções
           ...sections.flatMap(section => section.children)
         ]
       }
-    ],
-    styles: {
-      paragraphStyles: [
-        {
-          id: "Normal",
-          name: "Normal",
-          basedOn: "Normal",
-          next: "Normal",
-          quickFormat: true,
-          run: {
-            font: fontName,
-            size: fontSize,
-          }
-        },
-        {
-          id: "Heading1",
-          name: "Heading 1",
-          basedOn: "Normal",
-          next: "Normal",
-          quickFormat: true,
-          run: {
-            font: fontName,
-            size: 32,
-            bold: true,
-            color: "0070C0"
-          }
-        }
-      ]
-    }
+    ]
   });
   
   try {
@@ -491,10 +465,18 @@ function createPageTable(leftBlocks: DataBlock[], rightBlocks: DataBlock[], opti
   if (hasRealContent && dataRows.length > 0) {
     return new Table({
       width: {
-        size: 120,  // Setting to 120% as requested
+        size: 100,  // 100% da largura disponível
         type: WidthType.PERCENTAGE,
       },
-      alignment: AlignmentType.CENTER, // Centralizado conforme a imagem
+      alignment: AlignmentType.CENTER, // Centralizado
+      borders: {
+        top: { style: BorderStyle.SINGLE, size: 1 },
+        bottom: { style: BorderStyle.SINGLE, size: 1 },
+        left: { style: BorderStyle.SINGLE, size: 1 },
+        right: { style: BorderStyle.SINGLE, size: 1 },
+        insideHorizontal: { style: BorderStyle.SINGLE, size: 1 },
+        insideVertical: { style: BorderStyle.SINGLE, size: 1 }
+      },
       rows: [headerRow, ...dataRows],
     });
   }
@@ -577,6 +559,17 @@ function createTableCell(text: string, options: {
   const shouldAlignLeft = cellOptions.alignLeft || 
     (!cellOptions.isHeader && text !== '' && (isNaN(Number(text)) || text.trim() === ''));
   
+  // Formatação especial para colunas TB e IM conforme MODELO LISTA
+  let shading = undefined;
+  let textColor = undefined;
+  
+  if (cellOptions.highlight === 'yellow') {
+    shading = 'FFFF00'; // Amarelo para TB
+  } else if (cellOptions.highlight === 'green') {
+    shading = '00B050'; // Verde para IM
+    textColor = 'FFFFFF'; // Texto branco para IM
+  }
+  
   // Configuração da célula
   const tableCellConfig: any = {
     width: {
@@ -589,6 +582,9 @@ function createTableCell(text: string, options: {
       left: { style: BorderStyle.SINGLE, size: 1 },
       right: { style: BorderStyle.SINGLE, size: 1 },
     },
+    shading: shading ? {
+      fill: shading
+    } : undefined,
     children: [
       new Paragraph({
         alignment: shouldAlignLeft ? AlignmentType.LEFT : AlignmentType.CENTER,
@@ -598,7 +594,7 @@ function createTableCell(text: string, options: {
             font: options.fontName,
             size: options.fontSize,
             bold: isBold,
-            highlight: cellOptions.highlight,
+            color: textColor,
           }),
         ],
       }),
