@@ -39,7 +39,31 @@ export async function generateWordDocument(excelData: ExcelData): Promise<void> 
   
   // Create the document with table settings
   const doc = new Document({
-    sections: sections,
+    title: "MÓVEIS BONAFÉ - LISTA DE ENTREGA",
+    description: "Documento gerado automaticamente para lista de entrega",
+    sections: [
+      {
+        properties: {},
+        children: [
+          new Paragraph({
+            alignment: AlignmentType.CENTER,
+            spacing: {
+              after: 400
+            },
+            children: [
+              new TextRun({
+                text: "MÓVEIS BONAFÉ - LISTA DE ENTREGA",
+                bold: true,
+                color: "0070C0",
+                size: 32, // 16pt
+                font: fontName
+              })
+            ]
+          }),
+          ...sections.flatMap(section => section.children)
+        ]
+      }
+    ],
     styles: {
       paragraphStyles: [
         {
@@ -52,6 +76,19 @@ export async function generateWordDocument(excelData: ExcelData): Promise<void> 
             font: fontName,
             size: fontSize,
           }
+        },
+        {
+          id: "Heading1",
+          name: "Heading 1",
+          basedOn: "Normal",
+          next: "Normal",
+          quickFormat: true,
+          run: {
+            font: fontName,
+            size: 32,
+            bold: true,
+            color: "0070C0"
+          }
         }
       ]
     }
@@ -60,7 +97,7 @@ export async function generateWordDocument(excelData: ExcelData): Promise<void> 
   try {
     // Generate and save the file - using Blob directly for browser environment
     const blob = await Packer.toBlob(doc);
-    saveAs(blob, `Lista_${new Date().toISOString().slice(0,10)}.docx`);
+    saveAs(blob, `Lista_Entrega_Moveis_Bonafe_${new Date().toISOString().slice(0,10)}.docx`);
   } catch (error) {
     console.error("Erro ao gerar documento:", error);
     throw new Error("Erro ao gerar o documento. Por favor, tente novamente.");
@@ -225,23 +262,79 @@ function createPageTable(leftBlocks: DataBlock[], rightBlocks: DataBlock[], opti
   const firstLeftName = leftBlocks.length > 0 ? truncateNameText(leftBlocks[0].name) : '';
   const firstRightName = rightBlocks.length > 0 ? truncateNameText(rightBlocks[0].name) : '';
   
-  // Create header row with names in the first row
+  // Create header row with names in the first row - Este é o modelo LISTA esperado
   const headerRow = new TableRow({
+    tableHeader: true, // Marca como cabeçalho de tabela para formatação especial
     height: {
       value: options.rowHeight,
       rule: HeightRule.EXACT
     },
     children: [
-      createTableCell(firstLeftName, options, { isHeader: true, width: options.nameColumnWidth, bold: true, alignLeft: true }),
-      createTableCell('CE', options, { isHeader: true, width: options.columnWidth, bold: false }),
-      createTableCell('MG', options, { isHeader: true, width: options.columnWidth }),
-      createTableCell('TB', options, { isHeader: true, width: options.columnWidth, bold: true, highlight: 'yellow' }),
-      createTableCell('IM', options, { isHeader: true, width: options.columnWidth, bold: true, highlight: 'green' }),
-      createTableCell(firstRightName, options, { isHeader: true, width: options.nameColumnWidth, bold: true, alignLeft: true }),
-      createTableCell('CE', options, { isHeader: true, width: options.columnWidth, bold: false }),
-      createTableCell('MG', options, { isHeader: true, width: options.columnWidth }),
-      createTableCell('TB', options, { isHeader: true, width: options.columnWidth, bold: true, highlight: 'yellow' }),
-      createTableCell('IM', options, { isHeader: true, width: options.columnWidth, bold: true, highlight: 'green' }),
+      // Lado esquerdo
+      createTableCell(firstLeftName, options, { 
+        isHeader: true, 
+        width: options.nameColumnWidth, 
+        bold: true, 
+        alignLeft: true,
+        highlight: undefined
+      }),
+      createTableCell('CE', options, { 
+        isHeader: true, 
+        width: options.columnWidth, 
+        bold: true,
+        highlight: undefined 
+      }),
+      createTableCell('MG', options, { 
+        isHeader: true, 
+        width: options.columnWidth,
+        bold: true,
+        highlight: undefined
+      }),
+      createTableCell('TB', options, { 
+        isHeader: true, 
+        width: options.columnWidth, 
+        bold: true, 
+        highlight: 'yellow' 
+      }),
+      createTableCell('IM', options, { 
+        isHeader: true, 
+        width: options.columnWidth, 
+        bold: true, 
+        highlight: 'green' 
+      }),
+      
+      // Lado direito
+      createTableCell(firstRightName, options, { 
+        isHeader: true, 
+        width: options.nameColumnWidth, 
+        bold: true, 
+        alignLeft: true,
+        highlight: undefined
+      }),
+      createTableCell('CE', options, { 
+        isHeader: true, 
+        width: options.columnWidth, 
+        bold: true,
+        highlight: undefined
+      }),
+      createTableCell('MG', options, { 
+        isHeader: true, 
+        width: options.columnWidth,
+        bold: true,
+        highlight: undefined
+      }),
+      createTableCell('TB', options, { 
+        isHeader: true, 
+        width: options.columnWidth, 
+        bold: true, 
+        highlight: 'yellow' 
+      }),
+      createTableCell('IM', options, { 
+        isHeader: true, 
+        width: options.columnWidth, 
+        bold: true, 
+        highlight: 'green' 
+      }),
     ],
   });
   
