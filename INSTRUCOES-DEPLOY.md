@@ -2,15 +2,15 @@
 
 ## 1. Preparação
 
-Os arquivos para deploy já foram gerados na pasta `github-pages`. Esta pasta contém:
+Os arquivos para deploy já foram gerados na pasta `docs`. Esta pasta contém:
 - `index.html` - A página principal
 - `.nojekyll` - Arquivo necessário para o GitHub Pages
 
 ## 2. Download dos Arquivos
 
-Primeiro, você precisa baixar os arquivos da pasta `github-pages`:
+Primeiro, você precisa baixar os arquivos da pasta `docs`:
 
-1. No Replit, navegue até a pasta `github-pages`
+1. No Replit, navegue até a pasta `docs`
 2. Clique com o botão direito em cada arquivo e selecione "Download"
    - Baixe o arquivo `index.html`
    - Baixe o arquivo `.nojekyll` (este é um arquivo vazio, mas importante)
@@ -45,11 +45,22 @@ git push origin main
 
 ## 5. Configuração do GitHub Pages
 
+### Opção 1: Usando a raiz do repositório
 1. No seu repositório, clique na aba "Settings"
 2. No menu lateral esquerdo, clique em "Pages"
 3. Na seção "Source", selecione "Deploy from a branch"
 4. Na seção "Branch", selecione "main" (ou "master") e "/root", depois clique em "Save"
 5. Aguarde alguns minutos até que o GitHub processe seu site
+
+### Opção 2: Usando a pasta /docs (Recomendado)
+1. Crie uma pasta chamada "docs" no seu repositório
+2. Mova os arquivos index.html e .nojekyll para dentro desta pasta
+3. Faça o commit dessa alteração
+4. No seu repositório, clique na aba "Settings"
+5. No menu lateral esquerdo, clique em "Pages"
+6. Na seção "Source", selecione "Deploy from a branch"
+7. Na seção "Branch", selecione "main" (ou "master") e "/docs", depois clique em "Save"
+8. Aguarde alguns minutos até que o GitHub processe seu site
 
 ## 6. Verificação
 
