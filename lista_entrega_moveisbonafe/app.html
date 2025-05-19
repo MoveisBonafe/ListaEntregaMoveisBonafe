@@ -505,7 +505,8 @@
             
             <div class="preview-actions">
               <button class="btn btn-secondary" id="resetBtn" disabled>Cancelar</button>
-              <button class="btn" id="generateBtn" disabled>Gerar Documento</button>
+              <button class="btn" id="generateBtn" disabled>Gerar Documento Word</button>
+              <button class="btn" id="generateHtmlBtn" disabled style="background-color: #28a745; margin-left: 10px;">Gerar Documento HTML</button>
             </div>
           </div>
         </div>
@@ -818,6 +819,9 @@
       // Generate Word document
       const buffer = await docx.Packer.toBlob(doc);
       saveAs(buffer, `Lista_Entrega_${new Date().toISOString().slice(0, 10)}.docx`);
+      
+      // Also offer HTML export option
+      generateHtmlExport(excelData);
     }
 
     // Create a table for a pair of client blocks (left and right)
@@ -988,6 +992,192 @@
         shading: { fill: '#00B050' }, // Green highlight for IM column values
       });
     }
+    
+    // Function to generate an HTML export that matches the exact format
+    function generateHtmlExport(excelData) {
+      const { processedData } = excelData;
+      
+      // Create HTML content
+      let htmlContent = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Móveis Bonafé - Lista de Entrega</title>
+  <style>
+    body { 
+      font-family: Arial, sans-serif; 
+      margin: 20px;
+    }
+    table { 
+      border-collapse: collapse; 
+      width: 100%; 
+      margin-bottom: 20px; 
+    }
+    th, td { 
+      border: 1px solid black; 
+      padding: 4px; 
+      text-align: center; 
+    }
+    .header { 
+      font-weight: bold; 
+      background-color: #f2f2f2; 
+    }
+    .client-name { 
+      font-weight: bold; 
+      text-align: left; 
+    }
+    .tb-header { 
+      background-color: yellow; 
+    }
+    .im-cell { 
+      background-color: green; 
+      color: white; 
+    }
+    h1 { 
+      text-align: center; 
+      color: #0070c0; 
+    }
+    .no-print {
+      margin-top: 40px;
+      padding: 15px;
+      background-color: #f0f0f0;
+      border-radius: 5px;
+    }
+    .btn {
+      display: inline-block;
+      background-color: #0070c0;
+      color: white;
+      padding: 8px 15px;
+      text-decoration: none;
+      border-radius: 4px;
+      margin-top: 10px;
+    }
+    
+    @media print {
+      .no-print {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>MÓVEIS BONAFÉ - LISTA DE ENTREGA</h1>
+`;
+      
+      // Process data into pairs of clients
+      for (let i = 0; i < processedData.length; i += 2) {
+        const leftBlock = processedData[i];
+        const rightBlock = i + 1 < processedData.length ? processedData[i + 1] : null;
+        
+        // Start table
+        htmlContent += `
+  <table>
+    <tr class="header">
+      <th class="client-name">${leftBlock.name}</th>
+      <th>CE</th>
+      <th>MG</th>
+      <th class="tb-header">TB</th>
+      <th>IM</th>`;
+        
+        // Add right client if exists
+        if (rightBlock) {
+          htmlContent += `
+      <th class="client-name">${rightBlock.name}</th>
+      <th>CE</th>
+      <th>MG</th>
+      <th class="tb-header">TB</th>
+      <th>IM</th>`;
+        } else {
+          htmlContent += `
+      <th class="client-name"></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>`;
+        }
+        
+        htmlContent += `
+    </tr>`;
+        
+        // Calculate max rows
+        const leftProducts = leftBlock.products || [];
+        const rightProducts = rightBlock ? (rightBlock.products || []) : [];
+        const maxRows = Math.max(leftProducts.length, rightProducts.length);
+        
+        // Add product rows
+        for (let j = 0; j < maxRows; j++) {
+          const leftProduct = j < leftProducts.length ? leftProducts[j] : null;
+          const rightProduct = j < rightProducts.length ? rightProducts[j] : null;
+          
+          htmlContent += `
+    <tr>`;
+          
+          // Left product cells
+          if (leftProduct) {
+            htmlContent += `
+      <td>${leftProduct.name}</td>
+      <td>${leftProduct.values[0] ? formatNumberWithLeadingZeros(leftProduct.values[0]) : ''}</td>
+      <td>${leftProduct.values[1] ? formatNumberWithLeadingZeros(leftProduct.values[1]) : ''}</td>
+      <td>${leftProduct.values[2] ? formatNumberWithLeadingZeros(leftProduct.values[2]) : ''}</td>
+      <td ${leftProduct.values[3] ? 'class="im-cell"' : ''}>${leftProduct.values[3] ? formatNumberWithLeadingZeros(leftProduct.values[3]) : ''}</td>`;
+          } else {
+            htmlContent += `
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>`;
+          }
+          
+          // Right product cells
+          if (rightProduct) {
+            htmlContent += `
+      <td>${rightProduct.name}</td>
+      <td>${rightProduct.values[0] ? formatNumberWithLeadingZeros(rightProduct.values[0]) : ''}</td>
+      <td>${rightProduct.values[1] ? formatNumberWithLeadingZeros(rightProduct.values[1]) : ''}</td>
+      <td>${rightProduct.values[2] ? formatNumberWithLeadingZeros(rightProduct.values[2]) : ''}</td>
+      <td ${rightProduct.values[3] ? 'class="im-cell"' : ''}>${rightProduct.values[3] ? formatNumberWithLeadingZeros(rightProduct.values[3]) : ''}</td>`;
+          } else {
+            htmlContent += `
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>`;
+          }
+          
+          htmlContent += `
+    </tr>`;
+        }
+        
+        // End table
+        htmlContent += `
+  </table>`;
+      }
+      
+      // Add printing instructions
+      htmlContent += `
+  <div class="no-print">
+    <h2>Instruções para impressão</h2>
+    <p>Para salvar este documento como PDF ou imprimi-lo:</p>
+    <ol>
+      <li>Pressione Ctrl+P (ou Cmd+P no Mac)</li>
+      <li>Selecione "Salvar como PDF" na opção de impressora</li>
+      <li>Clique em "Salvar" para gerar o arquivo PDF</li>
+    </ol>
+    <p>A impressão vai ocultar automaticamente estas instruções.</p>
+    <a href="javascript:window.print()" class="btn">Imprimir/Salvar como PDF</a>
+    <a href="javascript:window.close()" class="btn">Fechar esta janela</a>
+  </div>
+</body>
+</html>`;
+      
+      // Open the HTML in a new window
+      const newWindow = window.open('');
+      newWindow.document.write(htmlContent);
+      newWindow.document.close();
+    }
 
     // Main application code
     document.addEventListener('DOMContentLoaded', function() {
@@ -1071,6 +1261,14 @@
               console.error('Error generating document:', error);
               alert('Erro ao gerar o documento: ' + error.message);
             });
+        }
+      });
+      
+      // HTML Generate button
+      const generateHtmlBtn = document.getElementById('generateHtmlBtn');
+      generateHtmlBtn.addEventListener('click', function() {
+        if (currentExcelData) {
+          generateHtmlExport(currentExcelData);
         }
       });
       
