@@ -22,8 +22,8 @@ export async function generateWordDocument(excelData: ExcelData): Promise<void> 
   // Constants for document formatting
   const fontName = 'Times New Roman';
   const fontSize = 24; // 12pt = 24 half-points in docx
-  // Altura da linha em twips (1 cm = 567 twips, então 0.5cm = 283.5 twips aproximadamente)
-  const rowHeight = 284; // Exatamente 0.5cm
+  // Altura da linha em twips (1 cm = 567 twips, então 0.6cm = 340 twips aproximadamente)
+  const rowHeight = 340;
   const columnWidth = 1000; // 1.0cm for number columns
   const nameColumnWidth = 5000; // 5.0cm for name columns
   
@@ -76,8 +76,8 @@ function createDocumentSections(blocks: DataBlock[], options: {
   totalProducts?: ProductData[];
 }): DocSection[] {
   const sections: DocSection[] = [];
-  // Ajustado para corresponder ao número de linhas que cabem na tabela com altura de 0.5cm
-  const maxRowsPerSide = 48; // Número máximo de linhas por lado (considerando folha A4 com 48 linhas)
+  // Ajustado para corresponder ao número de linhas que cabem na tabela com altura de 0.6cm
+  const maxRowsPerSide = 40; // Número máximo de linhas por lado (considerando folha A4 com 41 linhas)
   const blocksWithProducts = blocks.filter(block => block.products.length > 0);
   
   // Organiza os blocos em páginas
@@ -363,8 +363,8 @@ function createPageTable(leftBlocks: DataBlock[], rightBlocks: DataBlock[], opti
   
   if (hasRealContent && dataRows.length > 0) {
     // Adicionar linhas vazias para preencher a página até o final (como na imagem)
-    // Ajustado para 48 linhas em uma página A4 com linhas de 0.5cm
-    const totalRowsPerPage = 48;
+    // Ajustado para 40 linhas em uma página A4 com linhas de 0.6cm
+    const totalRowsPerPage = 40;
     const emptyRowsNeeded = totalRowsPerPage - (dataRows.length + 1); // +1 para o cabeçalho
     
     if (emptyRowsNeeded > 0) {

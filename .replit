@@ -7,13 +7,9 @@ channel = "stable-24_05"
 packages = ["zip"]
 
 [deployment]
-deploymentTarget = "static"
-build = ["sh", "-c", "npx vite build --outDir docs"]
-publicDir = "docs"
-
-[[deployment.rewrites]]
-from = "/*"
-to = "/index.html"
+deploymentTarget = "autoscale"
+build = ["sh", "-c", "npx vite build --outDir dist/github-pages"]
+run = ["sh", "-c", "npx serve -s dist/github-pages"]
 
 [[ports]]
 localPort = 5000
