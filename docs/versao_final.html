@@ -942,6 +942,7 @@
     }
     table {
       width: 100%;
+      table-layout: fixed;
       border-collapse: collapse;
       margin-bottom: 12pt;
     }
@@ -949,23 +950,37 @@
       border: 1pt solid black;
       padding: 3pt;
       vertical-align: middle;
+      height: 25pt;
     }
-    .client-name {
-      font-weight: bold;
+    th:first-child, td:first-child {
+      width: 25%;
       text-align: left;
+    }
+    th:nth-child(2), th:nth-child(3), th:nth-child(4), th:nth-child(5),
+    th:nth-child(7), th:nth-child(8), th:nth-child(9), th:nth-child(10),
+    td:nth-child(2), td:nth-child(3), td:nth-child(4), td:nth-child(5),
+    td:nth-child(7), td:nth-child(8), td:nth-child(9), td:nth-child(10) {
+      width: 5%;
+      text-align: center;
+    }
+    th:nth-child(6), td:nth-child(6) {
+      width: 25%;
+      text-align: left;
+    }
+    th {
+      font-weight: bold;
       background-color: #f2f2f2;
     }
     .tb-header {
-      background-color: yellow;
+      background-color: yellow !important;
     }
     .im-cell {
-      background-color: #92D050;
+      background-color: #92D050 !important;
     }
-    td {
-      text-align: center;
-    }
-    td:first-child {
-      text-align: left;
+    /* Estilos específicos para o cabeçalho */
+    .header-row th {
+      background-color: #f2f2f2;
+      font-weight: bold;
     }
   </style>
 </head>
@@ -973,90 +988,104 @@
   <h1>MÓVEIS BONAFÉ - LISTA DE ENTREGA</h1>
 `;
         
-        // Processar dados em pares de clientes (dois clientes por tabela)
-        for (let i = 0; i < processedData.length; i += 2) {
-          const leftBlock = processedData[i];
-          const rightBlock = i + 1 < processedData.length ? processedData[i + 1] : null;
+        // Processar dados em uma única tabela com nome na coluna 1
+        htmlContent += `
+  <table border="1" cellspacing="0" cellpadding="3">
+    <tr class="header-row">
+      <th>NOME</th>
+      <th>CE</th>
+      <th>MG</th>
+      <th class="tb-header">TB</th>
+      <th>IM</th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>`;
+        
+        // Percorrer cada cliente
+        for (const block of processedData) {
+          const products = block.products || [];
           
-          // Iniciar tabela
+          // Se não há produtos, adicionar uma linha apenas com o nome do cliente
+          if (products.length === 0) {
+            htmlContent += `
+    <tr>
+      <td>${block.name}</td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+    </tr>`;
+            continue;
+          }
+          
+          // Para cada produto, adicionar uma linha com o nome do cliente
+          for (let j = 0; j < products.length; j++) {
+            const product = products[j];
+            
+            htmlContent += `
+    <tr>
+      <td>${j === 0 ? block.name : ''}</td>
+      <td>${product.values[0] ? formatNumberWithLeadingZeros(product.values[0]) : ''}</td>
+      <td>${product.values[1] ? formatNumberWithLeadingZeros(product.values[1]) : ''}</td>
+      <td>${product.values[2] ? formatNumberWithLeadingZeros(product.values[2]) : ''}</td>
+      <td ${product.values[3] ? 'class="im-cell"' : ''}>${product.values[3] ? formatNumberWithLeadingZeros(product.values[3]) : ''}</td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+    </tr>`;
+          }
+        }
+        
+        htmlContent += `
+  </table>`;
+          
+        // Adicionar seção TOTAL se disponível
+        if (totalProducts && totalProducts.length > 0) {
+          // Processar em uma tabela separada
           htmlContent += `
   <table border="1" cellspacing="0" cellpadding="3">
-    <tr>
-      <th class="client-name">${leftBlock.name}</th>
+    <tr class="header-row">
+      <th>TOTAL</th>
       <th>CE</th>
       <th>MG</th>
       <th class="tb-header">TB</th>
-      <th>IM</th>`;
+      <th>IM</th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>`;
           
-          // Adicionar cliente da direita se existir
-          if (rightBlock) {
+          for (const product of totalProducts) {
             htmlContent += `
-      <th class="client-name">${rightBlock.name}</th>
-      <th>CE</th>
-      <th>MG</th>
-      <th class="tb-header">TB</th>
-      <th>IM</th>`;
-          } else {
-            htmlContent += `
-      <th class="client-name"></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>`;
+    <tr>
+      <td>${product.name}</td>
+      <td>${product.values[0] ? formatNumberWithLeadingZeros(product.values[0]) : ''}</td>
+      <td>${product.values[1] ? formatNumberWithLeadingZeros(product.values[1]) : ''}</td>
+      <td>${product.values[2] ? formatNumberWithLeadingZeros(product.values[2]) : ''}</td>
+      <td ${product.values[3] ? 'class="im-cell"' : ''}>${product.values[3] ? formatNumberWithLeadingZeros(product.values[3]) : ''}</td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+    </tr>`;
           }
           
           htmlContent += `
-    </tr>`;
-          
-          // Calcular número máximo de linhas
-          const leftProducts = leftBlock.products || [];
-          const rightProducts = rightBlock ? (rightBlock.products || []) : [];
-          const maxRows = Math.max(leftProducts.length, rightProducts.length);
-          
-          // Adicionar linhas de produtos
-          for (let j = 0; j < maxRows; j++) {
-            const leftProduct = j < leftProducts.length ? leftProducts[j] : null;
-            const rightProduct = j < rightProducts.length ? rightProducts[j] : null;
-            
-            htmlContent += `
-    <tr>`;
-            
-            // Células para o produto da esquerda
-            if (leftProduct) {
-              htmlContent += `
-      <td>${leftProduct.name}</td>
-      <td>${leftProduct.values[0] ? formatNumberWithLeadingZeros(leftProduct.values[0]) : ''}</td>
-      <td>${leftProduct.values[1] ? formatNumberWithLeadingZeros(leftProduct.values[1]) : ''}</td>
-      <td>${leftProduct.values[2] ? formatNumberWithLeadingZeros(leftProduct.values[2]) : ''}</td>
-      <td ${leftProduct.values[3] ? 'class="im-cell"' : ''}>${leftProduct.values[3] ? formatNumberWithLeadingZeros(leftProduct.values[3]) : ''}</td>`;
-            } else {
-              htmlContent += `
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>`;
-            }
-            
-            // Células para o produto da direita
-            if (rightProduct) {
-              htmlContent += `
-      <td>${rightProduct.name}</td>
-      <td>${rightProduct.values[0] ? formatNumberWithLeadingZeros(rightProduct.values[0]) : ''}</td>
-      <td>${rightProduct.values[1] ? formatNumberWithLeadingZeros(rightProduct.values[1]) : ''}</td>
-      <td>${rightProduct.values[2] ? formatNumberWithLeadingZeros(rightProduct.values[2]) : ''}</td>
-      <td ${rightProduct.values[3] ? 'class="im-cell"' : ''}>${rightProduct.values[3] ? formatNumberWithLeadingZeros(rightProduct.values[3]) : ''}</td>`;
-            } else {
-              htmlContent += `
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>`;
-            }
-            
-            htmlContent += `
-    </tr>`;
+  </table>`;
+        }
           }
           
           // Finalizar tabela
@@ -1068,13 +1097,13 @@
         if (totalProducts && totalProducts.length > 0) {
           htmlContent += `
   <table border="1" cellspacing="0" cellpadding="3">
-    <tr>
-      <th class="client-name">TOTAL</th>
+    <tr class="header-row">
+      <th>TOTAL</th>
       <th>CE</th>
       <th>MG</th>
       <th class="tb-header">TB</th>
       <th>IM</th>
-      <th class="client-name"></th>
+      <th></th>
       <th></th>
       <th></th>
       <th></th>
