@@ -973,145 +973,115 @@
   <h1>MÓVEIS BONAFÉ - LISTA DE ENTREGA</h1>
 `;
         
-        // Preparar os dados em formato adequado para a tabela de 10 colunas
-        const LINHAS_POR_PAGINA = 40;  // número máximo de linhas por página
-        let linhaPagina = 0;           // contador de linhas na página atual
-        let ladoEsquerdo = true;       // começamos pelo lado esquerdo
-        
-        // Criar uma tabela grande com 10 colunas para toda a página
-        htmlContent += `
-  <table border="1" cellspacing="0" cellpadding="3">
-    <tr>
-      <th class="client-name">CLIENTE</th>
-      <th>CE</th>
-      <th>MG</th>
-      <th class="tb-header">TB</th>
-      <th>IM</th>
-      <th class="client-name">CLIENTE</th>
-      <th>CE</th>
-      <th>MG</th>
-      <th class="tb-header">TB</th>
-      <th>IM</th>
-    </tr>`;
-        
-        // Percorrer todos os blocos de cliente
-        for (let i = 0; i < processedData.length; i++) {
-          const clienteAtual = processedData[i];
-          const produtos = clienteAtual.products.filter(p => 
-            p.values.some(v => v !== null && v !== '')
-          );
+        // Processar dados em pares de clientes (dois clientes por tabela)
+        for (let i = 0; i < processedData.length; i += 2) {
+          const leftBlock = processedData[i];
+          const rightBlock = i + 1 < processedData.length ? processedData[i + 1] : null;
           
-          // Se não tem produtos com valores, pular este cliente
-          if (produtos.length === 0) continue;
-          
-          // Verificar se há espaço no lado atual da página
-          const linhasNecessarias = produtos.length + 1;  // +1 para o cabeçalho do cliente
-          
-          // Se não há espaço suficiente no lado esquerdo e estamos no lado esquerdo,
-          // mudar para o lado direito
-          if (ladoEsquerdo && linhaPagina + linhasNecessarias > LINHAS_POR_PAGINA) {
-            ladoEsquerdo = false;
-            linhaPagina = 0;
-          }
-          
-          // Se não há espaço nem no lado direito, começar nova tabela
-          if (!ladoEsquerdo && linhaPagina + linhasNecessarias > LINHAS_POR_PAGINA) {
-            htmlContent += `
-  </table>
-  
-  <table border="1" cellspacing="0" cellpadding="3">
-    <tr>
-      <th class="client-name">CLIENTE</th>
-      <th>CE</th>
-      <th>MG</th>
-      <th class="tb-header">TB</th>
-      <th>IM</th>
-      <th class="client-name">CLIENTE</th>
-      <th>CE</th>
-      <th>MG</th>
-      <th class="tb-header">TB</th>
-      <th>IM</th>
-    </tr>`;
-            ladoEsquerdo = true;
-            linhaPagina = 0;
-          }
-          
-          // Adicionar linha com nome do cliente
+          // Iniciar tabela
           htmlContent += `
-    <tr>`;
+  <table border="1" cellspacing="0" cellpadding="3">
+    <tr>
+      <th class="client-name">${leftBlock.name}</th>
+      <th>CE</th>
+      <th>MG</th>
+      <th class="tb-header">TB</th>
+      <th>IM</th>`;
           
-          if (ladoEsquerdo) {
-            // Cliente no lado esquerdo
+          // Adicionar cliente da direita se existir
+          if (rightBlock) {
             htmlContent += `
-      <th class="client-name" colspan="5">${clienteAtual.name}</th>
-      <td colspan="5"></td>`;
+      <th class="client-name">${rightBlock.name}</th>
+      <th>CE</th>
+      <th>MG</th>
+      <th class="tb-header">TB</th>
+      <th>IM</th>`;
           } else {
-            // Cliente no lado direito
             htmlContent += `
-      <td colspan="5"></td>
-      <th class="client-name" colspan="5">${clienteAtual.name}</th>`;
+      <th class="client-name"></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>`;
           }
           
           htmlContent += `
     </tr>`;
           
-          linhaPagina++;
+          // Calcular número máximo de linhas
+          const leftProducts = leftBlock.products || [];
+          const rightProducts = rightBlock ? (rightBlock.products || []) : [];
+          const maxRows = Math.max(leftProducts.length, rightProducts.length);
           
-          // Adicionar produtos
-          for (const produto of produtos) {
+          // Adicionar linhas de produtos
+          for (let j = 0; j < maxRows; j++) {
+            const leftProduct = j < leftProducts.length ? leftProducts[j] : null;
+            const rightProduct = j < rightProducts.length ? rightProducts[j] : null;
+            
             htmlContent += `
     <tr>`;
             
-            if (ladoEsquerdo) {
-              // Produto no lado esquerdo
+            // Células para o produto da esquerda
+            if (leftProduct) {
               htmlContent += `
-      <td>${produto.name}</td>
-      <td>${produto.values[0] ? formatNumberWithLeadingZeros(produto.values[0]) : ''}</td>
-      <td>${produto.values[1] ? formatNumberWithLeadingZeros(produto.values[1]) : ''}</td>
-      <td>${produto.values[2] ? formatNumberWithLeadingZeros(produto.values[2]) : ''}</td>
-      <td ${produto.values[3] ? 'class="im-cell"' : ''}>${produto.values[3] ? formatNumberWithLeadingZeros(produto.values[3]) : ''}</td>
-      <td colspan="5"></td>`;
+      <td>${leftProduct.name}</td>
+      <td>${leftProduct.values[0] ? formatNumberWithLeadingZeros(leftProduct.values[0]) : ''}</td>
+      <td>${leftProduct.values[1] ? formatNumberWithLeadingZeros(leftProduct.values[1]) : ''}</td>
+      <td>${leftProduct.values[2] ? formatNumberWithLeadingZeros(leftProduct.values[2]) : ''}</td>
+      <td ${leftProduct.values[3] ? 'class="im-cell"' : ''}>${leftProduct.values[3] ? formatNumberWithLeadingZeros(leftProduct.values[3]) : ''}</td>`;
             } else {
-              // Produto no lado direito
               htmlContent += `
-      <td colspan="5"></td>
-      <td>${produto.name}</td>
-      <td>${produto.values[0] ? formatNumberWithLeadingZeros(produto.values[0]) : ''}</td>
-      <td>${produto.values[1] ? formatNumberWithLeadingZeros(produto.values[1]) : ''}</td>
-      <td>${produto.values[2] ? formatNumberWithLeadingZeros(produto.values[2]) : ''}</td>
-      <td ${produto.values[3] ? 'class="im-cell"' : ''}>${produto.values[3] ? formatNumberWithLeadingZeros(produto.values[3]) : ''}</td>`;
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>`;
+            }
+            
+            // Células para o produto da direita
+            if (rightProduct) {
+              htmlContent += `
+      <td>${rightProduct.name}</td>
+      <td>${rightProduct.values[0] ? formatNumberWithLeadingZeros(rightProduct.values[0]) : ''}</td>
+      <td>${rightProduct.values[1] ? formatNumberWithLeadingZeros(rightProduct.values[1]) : ''}</td>
+      <td>${rightProduct.values[2] ? formatNumberWithLeadingZeros(rightProduct.values[2]) : ''}</td>
+      <td ${rightProduct.values[3] ? 'class="im-cell"' : ''}>${rightProduct.values[3] ? formatNumberWithLeadingZeros(rightProduct.values[3]) : ''}</td>`;
+            } else {
+              htmlContent += `
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>`;
             }
             
             htmlContent += `
     </tr>`;
-            
-            linhaPagina++;
           }
           
-          // Se terminamos de preencher o lado esquerdo e ainda há espaço, começar lado direito
-          if (ladoEsquerdo && linhaPagina >= LINHAS_POR_PAGINA) {
-            ladoEsquerdo = false;
-            linhaPagina = 0;
-          }
-        }
-        
-        // Fechar a tabela principal
-        htmlContent += `
+          // Finalizar tabela
+          htmlContent += `
   </table>`;
+        }
         
         // Adicionar seção TOTAL se disponível
         if (totalProducts && totalProducts.length > 0) {
           htmlContent += `
   <table border="1" cellspacing="0" cellpadding="3">
     <tr>
-      <th class="client-name" colspan="5">TOTAL</th>
-      <th colspan="5"></th>
+      <th class="client-name">TOTAL</th>
+      <th>CE</th>
+      <th>MG</th>
+      <th class="tb-header">TB</th>
+      <th>IM</th>
+      <th class="client-name"></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
     </tr>`;
           
           for (const product of totalProducts) {
-            // Incluir apenas produtos com valores
-            if (!product.values.some(v => v !== null && v !== '')) continue;
-            
             htmlContent += `
     <tr>
       <td>${product.name}</td>
@@ -1119,7 +1089,11 @@
       <td>${product.values[1] ? formatNumberWithLeadingZeros(product.values[1]) : ''}</td>
       <td>${product.values[2] ? formatNumberWithLeadingZeros(product.values[2]) : ''}</td>
       <td ${product.values[3] ? 'class="im-cell"' : ''}>${product.values[3] ? formatNumberWithLeadingZeros(product.values[3]) : ''}</td>
-      <td colspan="5"></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
     </tr>`;
           }
           
