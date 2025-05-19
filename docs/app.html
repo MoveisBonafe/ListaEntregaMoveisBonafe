@@ -584,11 +584,92 @@
         return;
       }
       
-      // Simulação de geração de documento
-      alert('Como este é um exemplo para o GitHub Pages, o download completo do documento Word não está disponível nesta versão simplificada. Na aplicação completa, um documento Word seria gerado e baixado automaticamente.');
+      // Informar o usuário sobre as limitações do GitHub Pages e oferecer alternativa
+      const redirectConfirm = confirm('Esta é uma versão demonstrativa no GitHub Pages com recursos limitados. Para usar a versão completa com geração de documentos Word, por favor acesse a aplicação original no Replit onde você a desenvolveu.\n\nDeseja ver um exemplo do formato do documento?');
       
-      // Em uma aplicação real, você chamaria a função de geração de documento Word aqui
-      // generateWordDocument(excelData);
+      if (redirectConfirm) {
+        // Mostrar um exemplo de como seria o documento
+        const exampleDiv = document.createElement('div');
+        exampleDiv.style.position = 'fixed';
+        exampleDiv.style.top = '50%';
+        exampleDiv.style.left = '50%';
+        exampleDiv.style.transform = 'translate(-50%, -50%)';
+        exampleDiv.style.backgroundColor = 'white';
+        exampleDiv.style.padding = '20px';
+        exampleDiv.style.borderRadius = '8px';
+        exampleDiv.style.boxShadow = '0 0 20px rgba(0,0,0,0.2)';
+        exampleDiv.style.zIndex = '1000';
+        exampleDiv.style.maxWidth = '80%';
+        exampleDiv.style.maxHeight = '80vh';
+        exampleDiv.style.overflow = 'auto';
+        
+        exampleDiv.innerHTML = `
+          <h2 style="margin-bottom:15px;color:#333;border-bottom:1px solid #eee;padding-bottom:10px;">Prévia do Documento Word</h2>
+          <div style="display:flex;gap:20px;font-size:12px;line-height:1.5;">
+            <div style="flex:1;border:1px solid #ccc;padding:10px;background:#f9f9f9;border-radius:4px;">
+              <h3 style="margin-bottom:8px;font-size:14px;">CLIENTE A</h3>
+              <table style="width:100%;border-collapse:collapse;font-size:11px;">
+                <tr>
+                  <th style="border:1px solid #ddd;padding:4px;text-align:left;background:#f5f5f5;">PRODUTO</th>
+                  <th style="border:1px solid #ddd;padding:4px;text-align:center;background:#f5f5f5;">CE</th>
+                  <th style="border:1px solid #ddd;padding:4px;text-align:center;background:#f5f5f5;">MG</th>
+                  <th style="border:1px solid #ddd;padding:4px;text-align:center;background:#f5f5f5;background-color:#fff2cc;font-weight:bold;">TB</th>
+                  <th style="border:1px solid #ddd;padding:4px;text-align:center;background:#f5f5f5;background-color:#d9ead3;font-weight:bold;">IM</th>
+                </tr>
+                <tr>
+                  <td style="border:1px solid #ddd;padding:4px;">Cadeira 3021</td>
+                  <td style="border:1px solid #ddd;padding:4px;text-align:center;">10</td>
+                  <td style="border:1px solid #ddd;padding:4px;text-align:center;">5</td>
+                  <td style="border:1px solid #ddd;padding:4px;text-align:center;background-color:#fff2cc;">15</td>
+                  <td style="border:1px solid #ddd;padding:4px;text-align:center;background-color:#d9ead3;">2</td>
+                </tr>
+                <tr>
+                  <td style="border:1px solid #ddd;padding:4px;">Mesa 1548</td>
+                  <td style="border:1px solid #ddd;padding:4px;text-align:center;">3</td>
+                  <td style="border:1px solid #ddd;padding:4px;text-align:center;">2</td>
+                  <td style="border:1px solid #ddd;padding:4px;text-align:center;background-color:#fff2cc;">5</td>
+                  <td style="border:1px solid #ddd;padding:4px;text-align:center;background-color:#d9ead3;">1</td>
+                </tr>
+              </table>
+            </div>
+            <div style="flex:1;border:1px solid #ccc;padding:10px;background:#f9f9f9;border-radius:4px;">
+              <h3 style="margin-bottom:8px;font-size:14px;">CLIENTE B</h3>
+              <table style="width:100%;border-collapse:collapse;font-size:11px;">
+                <tr>
+                  <th style="border:1px solid #ddd;padding:4px;text-align:left;background:#f5f5f5;">PRODUTO</th>
+                  <th style="border:1px solid #ddd;padding:4px;text-align:center;background:#f5f5f5;">CE</th>
+                  <th style="border:1px solid #ddd;padding:4px;text-align:center;background:#f5f5f5;">MG</th>
+                  <th style="border:1px solid #ddd;padding:4px;text-align:center;background:#f5f5f5;background-color:#fff2cc;font-weight:bold;">TB</th>
+                  <th style="border:1px solid #ddd;padding:4px;text-align:center;background:#f5f5f5;background-color:#d9ead3;font-weight:bold;">IM</th>
+                </tr>
+                <tr>
+                  <td style="border:1px solid #ddd;padding:4px;">Armário 4520</td>
+                  <td style="border:1px solid #ddd;padding:4px;text-align:center;">8</td>
+                  <td style="border:1px solid #ddd;padding:4px;text-align:center;">4</td>
+                  <td style="border:1px solid #ddd;padding:4px;text-align:center;background-color:#fff2cc;">12</td>
+                  <td style="border:1px solid #ddd;padding:4px;text-align:center;background-color:#d9ead3;">3</td>
+                </tr>
+                <tr>
+                  <td style="border:1px solid #ddd;padding:4px;">Estante 2035</td>
+                  <td style="border:1px solid #ddd;padding:4px;text-align:center;">5</td>
+                  <td style="border:1px solid #ddd;padding:4px;text-align:center;">2</td>
+                  <td style="border:1px solid #ddd;padding:4px;text-align:center;background-color:#fff2cc;">7</td>
+                  <td style="border:1px solid #ddd;padding:4px;text-align:center;background-color:#d9ead3;">1</td>
+                </tr>
+              </table>
+            </div>
+          </div>
+          <div style="margin-top:20px;text-align:center;">
+            <button id="close-preview" style="background-color:#ffc107;color:#000;border:none;padding:8px 16px;border-radius:4px;font-weight:600;cursor:pointer;">Fechar</button>
+          </div>
+        `;
+        
+        document.body.appendChild(exampleDiv);
+        
+        document.getElementById('close-preview').addEventListener('click', () => {
+          document.body.removeChild(exampleDiv);
+        });
+      }
     });
     
     // Botão para cancelar
