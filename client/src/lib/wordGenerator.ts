@@ -76,8 +76,8 @@ function createDocumentSections(blocks: DataBlock[], options: {
   totalProducts?: ProductData[];
 }): DocSection[] {
   const sections: DocSection[] = [];
-  // Ajustado para corresponder ao número de linhas que cabem na tabela com altura de 0.6cm
-  const maxRowsPerSide = 40; // Número máximo de linhas por lado (considerando folha A4 com 41 linhas)
+  // Ajustado para corresponder ao número de linhas que cabem na tabela com altura de 0.5cm
+  const maxRowsPerSide = 48; // Número máximo de linhas por lado (considerando folha A4 com 48 linhas)
   const blocksWithProducts = blocks.filter(block => block.products.length > 0);
   
   // Organiza os blocos em páginas
@@ -363,8 +363,8 @@ function createPageTable(leftBlocks: DataBlock[], rightBlocks: DataBlock[], opti
   
   if (hasRealContent && dataRows.length > 0) {
     // Adicionar linhas vazias para preencher a página até o final (como na imagem)
-    // Ajustado para 40 linhas em uma página A4 com linhas de 0.6cm
-    const totalRowsPerPage = 40;
+    // Ajustado para 48 linhas em uma página A4 com linhas de 0.5cm
+    const totalRowsPerPage = 48;
     const emptyRowsNeeded = totalRowsPerPage - (dataRows.length + 1); // +1 para o cabeçalho
     
     if (emptyRowsNeeded > 0) {
