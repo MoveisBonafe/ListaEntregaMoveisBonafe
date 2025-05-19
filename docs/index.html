@@ -3,22 +3,25 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Móveis Bonafé - Lista de Entrega</title>
+  <title>Móveis Bonafé - Gerador de Lista de Entrega</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
-    
     body {
       font-family: 'Poppins', sans-serif;
       margin: 0;
       padding: 0;
       background-color: #f9f9f9;
       color: #333;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
     }
     
     header {
       padding: 1.5rem 0;
       box-shadow: 0 1px 3px rgba(0,0,0,0.1);
       border-bottom: 1px solid #f0f0f0;
+      background-color: #fff;
     }
     
     .container {
@@ -59,12 +62,8 @@
     }
     
     main {
+      flex: 1;
       padding: 2rem 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: 70vh;
     }
     
     .card {
@@ -73,8 +72,8 @@
       box-shadow: 0 4px 6px rgba(0,0,0,0.05);
       padding: 2rem;
       width: 100%;
-      max-width: 600px;
-      text-align: center;
+      max-width: 800px;
+      margin: 0 auto;
     }
     
     h1 {
@@ -97,6 +96,8 @@
       text-decoration: none;
       font-weight: 600;
       transition: all 0.3s ease;
+      margin-right: 0.5rem;
+      margin-bottom: 0.5rem;
     }
     
     .btn:hover {
@@ -104,11 +105,62 @@
       transform: translateY(-2px);
     }
     
+    .btn-secondary {
+      background-color: #eaeaea;
+    }
+    
     footer {
       text-align: center;
       padding: 1.5rem 0;
       color: #666;
       font-size: 0.875rem;
+      background-color: #fff;
+      border-top: 1px solid #f0f0f0;
+      margin-top: auto;
+    }
+    
+    .preview {
+      margin-top: 2rem;
+      border: 1px solid #e0e0e0;
+      padding: 1rem;
+      border-radius: 8px;
+    }
+    
+    .preview h2 {
+      font-size: 1.25rem;
+      margin-bottom: 1rem;
+    }
+    
+    /* Estilos para a tabela de exemplo */
+    table { 
+      border-collapse: collapse; 
+      width: 100%; 
+      margin-bottom: 20px; 
+    }
+    
+    th, td { 
+      border: 1px solid black; 
+      padding: 4px; 
+      text-align: center; 
+    }
+    
+    .header { 
+      font-weight: bold; 
+      background-color: #f2f2f2; 
+    }
+    
+    .client-name { 
+      font-weight: bold; 
+      text-align: left; 
+    }
+    
+    .tb-header { 
+      background-color: yellow; 
+    }
+    
+    .im-cell { 
+      background-color: green; 
+      color: white; 
     }
   </style>
 </head>
@@ -127,8 +179,53 @@
     <div class="container">
       <div class="card">
         <h1>Gerador de Lista de Entrega</h1>
-        <p>Este aplicativo converte arquivos Excel em documentos Word formatados para listas de entrega, com ordenação alfabética de produtos e formatação especial para as colunas.</p>
+        <p>Escolha uma das opções abaixo para acessar o aplicativo ou visualizar um modelo de documento:</p>
+        
         <a href="app.html" class="btn">Acessar Aplicativo</a>
+        <a href="modelo.html" class="btn btn-secondary">Ver Modelo de Documento</a>
+        
+        <div class="preview">
+          <h2>Exemplo de documento gerado:</h2>
+          
+          <table>
+            <tr class="header">
+              <th class="client-name">Tiete-Capricholar Moveis E</th>
+              <th>CE</th>
+              <th>MG</th>
+              <th class="tb-header">TB</th>
+              <th>IM</th>
+              <th class="client-name">Aracoiaba Da Serra-</th>
+              <th>CE</th>
+              <th>MG</th>
+              <th class="tb-header">TB</th>
+              <th>IM</th>
+            </tr>
+            <tr>
+              <td>Cadeira Alta</td>
+              <td>28</td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td>Cadeira Alta</td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td class="im-cell">20</td>
+            </tr>
+            <tr>
+              <td>Cadeira Comum</td>
+              <td>16</td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td>Mesa 0,70 X 0,45</td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td class="im-cell">03</td>
+            </tr>
+          </table>
+        </div>
       </div>
     </div>
   </main>
