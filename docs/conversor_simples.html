@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Móveis Bonafé - Gerador de Lista de Entrega</title>
+  
+  <!-- Estilos -->
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f5f5f5;
+    }
+    
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    
+    header {
+      background-color: white;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      padding: 20px 0;
+      margin-bottom: 30px;
+    }
+    
+    .header-content {
+      text-align: center;
+    }
+    
+    .logo {
+      font-size: 28px;
+      font-weight: bold;
+      color: #ffc107;
+      margin-bottom: 5px;
+    }
+    
+    .divider {
+      width: 60px;
+      height: 3px;
+      background-color: #ffc107;
+      margin: 0 auto 5px;
+    }
+    
+    .card {
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    
+    h2 {
+      margin-top: 0;
+      font-size: 20px;
+      margin-bottom: 20px;
+    }
+    
+    .upload-box {
+      border: 2px dashed #ddd;
+      border-radius: 8px;
+      padding: 30px;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    
+    .upload-box:hover {
+      border-color: #ffc107;
+      background-color: rgba(255, 193, 7, 0.05);
+    }
+    
+    .btn {
+      display: inline-block;
+      background-color: #ffc107;
+      color: #333;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    
+    .btn:hover {
+      background-color: #ffb300;
+    }
+    
+    .hidden {
+      display: none;
+    }
+    
+    .file-info {
+      margin-top: 20px;
+      padding-top: 15px;
+      border-top: 1px solid #eee;
+    }
+    
+    .info-row {
+      display: flex;
+      margin-bottom: 8px;
+    }
+    
+    .info-label {
+      width: 80px;
+      color: #666;
+    }
+    
+    .info-value {
+      font-weight: bold;
+    }
+    
+    .preview-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    
+    .preview-table th, 
+    .preview-table td {
+      border: 1px solid #333;
+      padding: 8px;
+      text-align: center;
+    }
+    
+    .preview-table th:first-child, 
+    .preview-table td:first-child {
+      text-align: left;
+    }
+    
+    .preview-table th.tb-header {
+      background-color: yellow;
+    }
+    
+    .preview-table td.im-cell {
+      background-color: #92D050;
+    }
+    
+    .download-area {
+      margin-top: 20px;
+      text-align: center;
+    }
+    
+    footer {
+      text-align: center;
+      padding: 20px 0;
+      color: #666;
+      font-size: 14px;
+    }
+    
+    #fileInput {
+      display: none;
+    }
+    
+    .spinner {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #ffc107;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto;
+      display: none;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+  
+  <!-- Bibliotecas necessárias -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <div class="header-content">
+        <h1 class="logo">MÓVEIS BONAFÉ</h1>
+        <div class="divider"></div>
+        <p>Gerador de Lista de Entrega</p>
+      </div>
+    </div>
+  </header>
+  
+  <div class="container">
+    <div class="card">
+      <h2>Selecione o arquivo Excel</h2>
+      
+      <div class="upload-box" id="uploadBox">
+        <p>Arraste e solte seu arquivo Excel aqui ou clique para selecionar</p>
+        <input type="file" id="fileInput" accept=".xlsx,.xls">
+        <button id="selectBtn" class="btn">Selecionar Arquivo</button>
+      </div>
+      
+      <div id="fileInfo" class="file-info hidden">
+        <div class="info-row">
+          <div class="info-label">Arquivo:</div>
+          <div id="fileName" class="info-value"></div>
+        </div>
+        <div class="info-row">
+          <div class="info-label">Tamanho:</div>
+          <div id="fileSize" class="info-value"></div>
+        </div>
+        <div class="info-row">
+          <div class="info-label">Status:</div>
+          <div id="fileStatus" class="info-value"></div>
+        </div>
+      </div>
+    </div>
+    
+    <div id="previewCard" class="card hidden">
+      <h2>Prévia do Documento</h2>
+      <div id="previewContent"></div>
+      
+      <div class="download-area">
+        <div id="spinner" class="spinner"></div>
+        <button id="downloadBtn" class="btn">Gerar Documento Word</button>
+      </div>
+    </div>
+  </div>
+  
+  <footer>
+    <div class="container">
+      <p><a href="index.html" style="color: #666; text-decoration: none;">Voltar para a página inicial</a></p>
+      <p>&copy; 2025 Móveis Bonafé. Todos os direitos reservados.</p>
+    </div>
+  </footer>
+  
+  <script>
+    // Elementos DOM
+    const uploadBox = document.getElementById('uploadBox');
+    const fileInput = document.getElementById('fileInput');
+    const selectBtn = document.getElementById('selectBtn');
+    const fileInfo = document.getElementById('fileInfo');
+    const fileName = document.getElementById('fileName');
+    const fileSize = document.getElementById('fileSize');
+    const fileStatus = document.getElementById('fileStatus');
+    const previewCard = document.getElementById('previewCard');
+    const previewContent = document.getElementById('previewContent');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const spinner = document.getElementById('spinner');
+    
+    // Dados processados
+    let processingData = null;
+    
+    // Event listeners
+    selectBtn.addEventListener('click', () => {
+      fileInput.click();
+    });
+    
+    fileInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        processFile(file);
+      }
+    });
+    
+    downloadBtn.addEventListener('click', () => {
+      spinner.style.display = 'block';
+      setTimeout(() => {
+        generateDocument();
+        spinner.style.display = 'none';
+      }, 300);
+    });
+    
+    // Drag & Drop
+    uploadBox.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      uploadBox.style.borderColor = '#ffc107';
+      uploadBox.style.backgroundColor = 'rgba(255, 193, 7, 0.05)';
+    });
+    
+    uploadBox.addEventListener('dragleave', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      uploadBox.style.borderColor = '#ddd';
+      uploadBox.style.backgroundColor = 'transparent';
+    });
+    
+    uploadBox.addEventListener('drop', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      uploadBox.style.borderColor = '#ddd';
+      uploadBox.style.backgroundColor = 'transparent';
+      
+      const file = e.dataTransfer.files[0];
+      if (file) {
+        processFile(file);
+      }
+    });
+    
+    // Funções
+    function processFile(file) {
+      if (!file) return;
+      
+      // Verificar extensão
+      const extension = file.name.split('.').pop().toLowerCase();
+      if (extension !== 'xlsx' && extension !== 'xls') {
+        alert('Por favor, selecione um arquivo Excel (.xlsx ou .xls)');
+        return;
+      }
+      
+      // Mostrar informações do arquivo
+      resetUI();
+      fileInfo.classList.remove('hidden');
+      fileName.textContent = file.name.length > 24 ? file.name.substring(0, 21) + '...' : file.name;
+      fileSize.textContent = formatFileSize(file.size);
+      fileStatus.textContent = 'Processando...';
+      
+      // Ler arquivo
+      const reader = new FileReader();
+      
+      reader.onload = function(e) {
+        try {
+          // Ler o Excel
+          const data = new Uint8Array(e.target.result);
+          const workbook = XLSX.read(data, { type: 'array' });
+          
+          // Processar dados
+          const result = processExcelData(workbook);
+          
+          if (!result.success) {
+            fileStatus.textContent = 'Erro: ' + result.error;
+            return;
+          }
+          
+          // Guardar dados processados
+          processingData = result.data;
+          
+          // Atualizar status
+          fileStatus.textContent = 'Processado com sucesso';
+          
+          // Mostrar prévia
+          previewCard.classList.remove('hidden');
+          showPreview(processingData);
+          
+        } catch (error) {
+          console.error('Erro ao processar arquivo:', error);
+          fileStatus.textContent = 'Erro: ' + error.message;
+        }
+      };
+      
+      reader.onerror = function() {
+        fileStatus.textContent = 'Erro ao ler o arquivo';
+      };
+      
+      reader.readAsArrayBuffer(file);
+    }
+    
+    function processExcelData(workbook) {
+      try {
+        // Verificar se as planilhas existem
+        const sheetNames = workbook.SheetNames;
+        
+        // Primeiro tentar encontrar planilhas com os nomes exatos
+        let listaPorPedidoSheet = null;
+        let cargaSheet = null;
+        
+        if (sheetNames.includes('LISTA POR PEDIDO')) {
+          listaPorPedidoSheet = workbook.Sheets['LISTA POR PEDIDO'];
+        } else {
+          // Procurar por nome similar
+          for (const name of sheetNames) {
+            if (name.toUpperCase().includes('LISTA') || name.toUpperCase().includes('PEDIDO')) {
+              listaPorPedidoSheet = workbook.Sheets[name];
+              break;
+            }
+          }
+        }
+        
+        if (sheetNames.includes('CARGA')) {
+          cargaSheet = workbook.Sheets['CARGA'];
+        } else {
+          // Procurar por nome similar
+          for (const name of sheetNames) {
+            if (name.toUpperCase().includes('CARGA')) {
+              cargaSheet = workbook.Sheets[name];
+              break;
+            }
+          }
+        }
+        
+        if (!listaPorPedidoSheet || !cargaSheet) {
+          return {
+            success: false,
+            error: 'Planilhas "LISTA POR PEDIDO" e "CARGA" não encontradas'
+          };
+        }
+        
+        // Converter para JSON
+        const listaData = XLSX.utils.sheet_to_json(listaPorPedidoSheet, { header: 1 });
+        const cargaData = XLSX.utils.sheet_to_json(cargaSheet, { header: 1 });
+        
+        // Processar dados
+        const clients = extractClients(listaData);
+        const totalProducts = extractTotalProducts(cargaData);
+        
+        return {
+          success: true,
+          data: {
+            clients: clients,
+            totalProducts: totalProducts
+          }
+        };
+        
+      } catch (error) {
+        console.error('Erro ao processar dados do Excel:', error);
+        return {
+          success: false,
+          error: error.message
+        };
+      }
+    }
+    
+    function extractClients(data) {
+      // Lista de clientes
+      const clients = [];
+      let currentClient = null;
+      
+      // Conjunto para rastrear nomes de clientes
+      const clientNames = new Set();
+      
+      // Procurar por cabeçalho (CE, MG, TB, IM)
+      let columnIndices = [];
+      
+      for (let i = 0; i < Math.min(20, data.length); i++) {
+        const row = data[i];
+        if (!row || !Array.isArray(row)) continue;
+        
+        // Converter para string para comparação
+        const rowStr = row.map(item => 
+          item && typeof item === 'string' ? item.toUpperCase() : ''
+        );
+        
+        // Verificar se esta linha tem os cabeçalhos
+        if (rowStr.includes('CE') && rowStr.includes('MG') && 
+            rowStr.includes('TB') && rowStr.includes('IM')) {
+          columnIndices = [
+            rowStr.indexOf('CE'),
+            rowStr.indexOf('MG'),
+            rowStr.indexOf('TB'),
+            rowStr.indexOf('IM')
+          ];
+          break;
+        }
+      }
+      
+      // Se não encontrou as colunas, assumir posições padrão
+      if (columnIndices.length === 0 || columnIndices.some(idx => idx === -1)) {
+        console.log('Cabeçalhos não encontrados, usando posições padrão');
+        columnIndices = [1, 2, 3, 4]; // Assumir CE=1, MG=2, TB=3, IM=4
+      }
+      
+      // Processar linhas do Excel
+      for (let i = 0; i < data.length; i++) {
+        const row = data[i];
+        if (!row || !Array.isArray(row) || row.length === 0) continue;
+        
+        // Verificar se é uma linha de cliente
+        if (row[0] === 'CLIENTE' && row.length > 1 && row[1]) {
+          // Finalizar cliente atual se existir
+          if (currentClient) {
+            currentClient.products.sort((a, b) => a.name.localeCompare(b.name));
+            clients.push(currentClient);
+          }
+          
+          // Criar novo cliente
+          const clientName = String(row[1]).trim();
+          clientNames.add(clientName);
+          
+          currentClient = {
+            name: clientName,
+            products: []
+          };
+        } 
+        // Verificar se é um produto
+        else if (currentClient && row[0] && 
+                String(row[0]) !== 'CLIENTE' && 
+                String(row[0]) !== 'ITEM') {
+          
+          const productName = String(row[0]).trim();
+          
+          // Verificar se este produto não é na verdade outro cliente
+          if (!clientNames.has(productName)) {
+            // Obter valores das colunas
+            const values = columnIndices.map(idx => {
+              if (idx >= 0 && idx < row.length) {
+                const val = row[idx];
+                return (val !== undefined && val !== null && val !== '') ? Number(val) : null;
+              }
+              return null;
+            });
+            
+            currentClient.products.push({
+              name: productName,
+              values: values
+            });
+          }
+        }
+      }
+      
+      // Adicionar o último cliente
+      if (currentClient) {
+        currentClient.products.sort((a, b) => a.name.localeCompare(b.name));
+        clients.push(currentClient);
+      }
+      
+      return clients;
+    }
+    
+    function extractTotalProducts(data) {
+      const products = [];
+      
+      // Procurar por cabeçalho com PRODUTO
+      let headerRow = -1;
+      let columnIndices = null;
+      
+      for (let i = 0; i < data.length; i++) {
+        const row = data[i];
+        if (!row || !Array.isArray(row)) continue;
+        
+        // Converter para string para comparação
+        const rowStr = row.map(item => 
+          item && typeof item === 'string' ? item.toUpperCase() : ''
+        );
+        
+        if (rowStr.includes('PRODUTO')) {
+          headerRow = i;
+          columnIndices = [
+            rowStr.indexOf('PRODUTO'),
+            rowStr.indexOf('CE'),
+            rowStr.indexOf('MG'),
+            rowStr.indexOf('TB'),
+            rowStr.indexOf('IM')
+          ];
+          break;
+        }
+      }
+      
+      // Se não encontrou, usar posições padrão
+      if (headerRow === -1 || !columnIndices) {
+        console.log('Cabeçalho PRODUTO não encontrado, usando posições padrão');
+        headerRow = 0;
+        columnIndices = [0, 1, 2, 3, 4]; // Produto, CE, MG, TB, IM
+      }
+      
+      // Processar dados após o cabeçalho
+      for (let i = headerRow + 1; i < data.length; i++) {
+        const row = data[i];
+        if (!row || !Array.isArray(row) || row.length === 0) continue;
+        
+        const prodIdx = columnIndices[0];
+        if (prodIdx !== -1 && prodIdx < row.length && row[prodIdx]) {
+          const productName = String(row[prodIdx]).trim();
+          
+          // Extrair valores
+          const values = [
+            columnIndices[1] !== -1 && columnIndices[1] < row.length ? row[columnIndices[1]] : null,
+            columnIndices[2] !== -1 && columnIndices[2] < row.length ? row[columnIndices[2]] : null,
+            columnIndices[3] !== -1 && columnIndices[3] < row.length ? row[columnIndices[3]] : null,
+            columnIndices[4] !== -1 && columnIndices[4] < row.length ? row[columnIndices[4]] : null
+          ].map(val => (val !== undefined && val !== null && val !== '') ? Number(val) : null);
+          
+          products.push({
+            name: productName,
+            values: values
+          });
+        }
+      }
+      
+      return products;
+    }
+    
+    function showPreview(data) {
+      if (!data || !data.clients || data.clients.length === 0) {
+        previewContent.innerHTML = '<p>Não foi possível gerar uma prévia dos dados.</p>';
+        return;
+      }
+      
+      let html = '<h3>Prévia:</h3>';
+      
+      // Mostrar até 2 clientes
+      const previewClients = data.clients.slice(0, Math.min(2, data.clients.length));
+      
+      html += '<table class="preview-table">';
+      html += '<tr>';
+      html += `<th>${previewClients[0].name}</th>`;
+      html += '<th>CE</th>';
+      html += '<th>MG</th>';
+      html += '<th class="tb-header">TB</th>';
+      html += '<th>IM</th>';
+      
+      if (previewClients.length > 1) {
+        html += `<th>${previewClients[1].name}</th>`;
+        html += '<th>CE</th>';
+        html += '<th>MG</th>';
+        html += '<th class="tb-header">TB</th>';
+        html += '<th>IM</th>';
+      } else {
+        html += '<th></th><th></th><th></th><th></th><th></th>';
+      }
+      
+      html += '</tr>';
+      
+      // Mostrar produtos (até 3 por cliente)
+      const maxProducts = Math.max(
+        Math.min(3, previewClients[0].products.length),
+        previewClients.length > 1 ? Math.min(3, previewClients[1].products.length) : 0
+      );
+      
+      for (let i = 0; i < maxProducts; i++) {
+        html += '<tr>';
+        
+        // Cliente 1
+        if (i < previewClients[0].products.length) {
+          const product = previewClients[0].products[i];
+          html += `<td>${product.name}</td>`;
+          html += `<td>${formatWithLeadingZeros(product.values[0])}</td>`;
+          html += `<td>${formatWithLeadingZeros(product.values[1])}</td>`;
+          html += `<td>${formatWithLeadingZeros(product.values[2])}</td>`;
+          html += `<td class="${product.values[3] ? 'im-cell' : ''}">${formatWithLeadingZeros(product.values[3])}</td>`;
+        } else {
+          html += '<td></td><td></td><td></td><td></td><td></td>';
+        }
+        
+        // Cliente 2
+        if (previewClients.length > 1 && i < previewClients[1].products.length) {
+          const product = previewClients[1].products[i];
+          html += `<td>${product.name}</td>`;
+          html += `<td>${formatWithLeadingZeros(product.values[0])}</td>`;
+          html += `<td>${formatWithLeadingZeros(product.values[1])}</td>`;
+          html += `<td>${formatWithLeadingZeros(product.values[2])}</td>`;
+          html += `<td class="${product.values[3] ? 'im-cell' : ''}">${formatWithLeadingZeros(product.values[3])}</td>`;
+        } else {
+          html += '<td></td><td></td><td></td><td></td><td></td>';
+        }
+        
+        html += '</tr>';
+      }
+      
+      html += '</table>';
+      html += '<p style="text-align: center; font-style: italic; color: #666; margin-top: 10px;">Esta é apenas uma prévia. O documento completo incluirá todos os clientes e produtos.</p>';
+      
+      previewContent.innerHTML = html;
+    }
+    
+    function generateDocument() {
+      if (!processingData || !processingData.clients || processingData.clients.length === 0) {
+        alert('Nenhum dado disponível para gerar o documento!');
+        return;
+      }
+      
+      try {
+        // Criar HTML para documento Word
+        let html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>Móveis Bonafé - Lista de Entrega</title>
+  <style>
+    body { font-family: Calibri, sans-serif; }
+    h1 { text-align: center; color: #0070c0; margin: 20px 0; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
+    th, td { border: 1px solid black; padding: 4px; text-align: center; }
+    th { background-color: #f2f2f2; font-weight: bold; }
+    th:first-child, td:first-child { text-align: left; }
+    .tb-header { background-color: yellow; }
+    .im-cell { background-color: #92D050; }
+  </style>
+</head>
+<body>
+  <h1>MÓVEIS BONAFÉ - LISTA DE ENTREGA</h1>`;
+        
+        // Processar clientes em pares (dois por tabela)
+        const clients = processingData.clients;
+        
+        for (let i = 0; i < clients.length; i += 2) {
+          const leftClient = clients[i];
+          const rightClient = i + 1 < clients.length ? clients[i + 1] : null;
+          
+          html += `
+  <table border="1">
+    <tr>
+      <th>${leftClient.name}</th>
+      <th>CE</th>
+      <th>MG</th>
+      <th class="tb-header">TB</th>
+      <th>IM</th>`;
+          
+          if (rightClient) {
+            html += `
+      <th>${rightClient.name}</th>
+      <th>CE</th>
+      <th>MG</th>
+      <th class="tb-header">TB</th>
+      <th>IM</th>`;
+          } else {
+            html += `
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>`;
+          }
+          
+          html += `
+    </tr>`;
+          
+          // Determinar número máximo de linhas
+          const maxRows = Math.max(
+            leftClient.products.length,
+            rightClient ? rightClient.products.length : 0
+          );
+          
+          // Adicionar produtos
+          for (let j = 0; j < maxRows; j++) {
+            html += `
+    <tr>`;
+            
+            // Produtos do cliente esquerdo
+            if (j < leftClient.products.length) {
+              const product = leftClient.products[j];
+              html += `
+      <td>${product.name}</td>
+      <td>${formatWithLeadingZeros(product.values[0])}</td>
+      <td>${formatWithLeadingZeros(product.values[1])}</td>
+      <td>${formatWithLeadingZeros(product.values[2])}</td>
+      <td${product.values[3] ? ' class="im-cell"' : ''}>${formatWithLeadingZeros(product.values[3])}</td>`;
+            } else {
+              html += `
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>`;
+            }
+            
+            // Produtos do cliente direito
+            if (rightClient && j < rightClient.products.length) {
+              const product = rightClient.products[j];
+              html += `
+      <td>${product.name}</td>
+      <td>${formatWithLeadingZeros(product.values[0])}</td>
+      <td>${formatWithLeadingZeros(product.values[1])}</td>
+      <td>${formatWithLeadingZeros(product.values[2])}</td>
+      <td${product.values[3] ? ' class="im-cell"' : ''}>${formatWithLeadingZeros(product.values[3])}</td>`;
+            } else {
+              html += `
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>`;
+            }
+            
+            html += `
+    </tr>`;
+          }
+          
+          html += `
+  </table>`;
+        }
+        
+        // Adicionar seção TOTAL
+        if (processingData.totalProducts && processingData.totalProducts.length > 0) {
+          html += `
+  <table border="1">
+    <tr>
+      <th>TOTAL</th>
+      <th>CE</th>
+      <th>MG</th>
+      <th class="tb-header">TB</th>
+      <th>IM</th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>`;
+          
+          for (const product of processingData.totalProducts) {
+            html += `
+    <tr>
+      <td>${product.name}</td>
+      <td>${formatWithLeadingZeros(product.values[0])}</td>
+      <td>${formatWithLeadingZeros(product.values[1])}</td>
+      <td>${formatWithLeadingZeros(product.values[2])}</td>
+      <td${product.values[3] ? ' class="im-cell"' : ''}>${formatWithLeadingZeros(product.values[3])}</td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+    </tr>`;
+          }
+          
+          html += `
+  </table>`;
+        }
+        
+        html += `
+</body>
+</html>`;
+        
+        // Criar Blob e baixar
+        const blob = new Blob([html], { type: 'application/msword' });
+        saveAs(blob, `Lista_Entrega_MoveisBonafe_${new Date().toISOString().slice(0, 10)}.doc`);
+        
+      } catch (error) {
+        console.error('Erro ao gerar documento:', error);
+        alert('Erro ao gerar documento: ' + error.message);
+      }
+    }
+    
+    // Funções utilitárias
+    function formatFileSize(bytes) {
+      if (bytes === 0) return '0 Bytes';
+      const k = 1024;
+      const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+    
+    function formatWithLeadingZeros(value) {
+      if (value === null || value === undefined || value === '') return '';
+      let numValue = typeof value === 'string' ? parseFloat(value) : value;
+      if (isNaN(numValue)) return '';
+      return numValue.toString().padStart(3, '0');
+    }
+    
+    function resetUI() {
+      fileInfo.classList.add('hidden');
+      previewCard.classList.add('hidden');
+      previewContent.innerHTML = '';
+      processingData = null;
+    }
+  </script>
+</body>
+</html>
