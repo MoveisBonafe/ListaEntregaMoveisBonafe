@@ -3,52 +3,41 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Móveis Bonafé - Gerador de Lista de Entrega</title>
+  <title>Móveis Bonafé - Lista de Entrega</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
   <style>
     :root {
       --primary: #ffc107;
-      --primary-dark: #ffb300;
-      --secondary: #000;
-      --text: #333;
-      --text-light: #666;
-      --bg: #f9f9f9;
-      --white: #fff;
+      --background: #f9f9f9;
+      --card-bg: #ffffff;
+      --text: #333333;
       --border: #e0e0e0;
-      --shadow: 0 4px 6px rgba(0,0,0,0.05);
-      --radius: 8px;
-      --header-height: 60px;
+      --shadow: rgba(0,0,0,0.1);
     }
     
     * {
-      box-sizing: border-box;
       margin: 0;
       padding: 0;
+      box-sizing: border-box;
     }
     
     body {
       font-family: 'Poppins', sans-serif;
-      margin: 0;
-      padding: 0;
-      background-color: var(--bg);
+      background-color: var(--background);
       color: var(--text);
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
+      line-height: 1.5;
     }
     
     header {
       padding: 1.5rem 0;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      box-shadow: 0 1px 3px var(--shadow);
       border-bottom: 1px solid var(--border);
-      background-color: var(--white);
+      margin-bottom: 2rem;
     }
     
     .container {
       width: 100%;
-      max-width: 1200px;
+      max-width: 1100px;
       margin: 0 auto;
       padding: 0 1rem;
     }
@@ -60,7 +49,7 @@
     .logo {
       font-weight: bold;
       text-transform: uppercase;
-      background: linear-gradient(to right, var(--secondary), var(--primary));
+      background: linear-gradient(to right, #000, var(--primary));
       -webkit-background-clip: text;
       background-clip: text;
       color: transparent;
@@ -80,54 +69,26 @@
       text-transform: uppercase;
       letter-spacing: 2px;
       font-weight: 500;
-      color: var(--secondary);
-    }
-    
-    main {
-      flex: 1;
-      padding: 2rem 0;
+      color: #000;
     }
     
     .app-container {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 2rem;
-    }
-    
-    @media (min-width: 1024px) {
-      .app-container {
-        grid-template-columns: 350px 1fr;
-      }
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
     }
     
     .card {
-      background: var(--white);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
+      background: var(--card-bg);
+      border-radius: 8px;
+      box-shadow: 0 2px 4px var(--shadow);
       padding: 1.5rem;
-      height: fit-content;
-    }
-    
-    .steps-container {
-      margin-bottom: 2rem;
     }
     
     .steps {
       display: flex;
       justify-content: space-between;
       margin-bottom: 1.5rem;
-      position: relative;
-    }
-    
-    .steps::before {
-      content: "";
-      position: absolute;
-      top: 14px;
-      left: 35px;
-      right: 35px;
-      height: 2px;
-      background-color: var(--border);
-      z-index: 0;
     }
     
     .step {
@@ -135,74 +96,61 @@
       flex-direction: column;
       align-items: center;
       position: relative;
-      z-index: 1;
+      flex: 1;
+    }
+    
+    .step:not(:last-child):after {
+      content: '';
+      position: absolute;
+      top: 15px;
+      right: -50%;
+      width: 100%;
+      height: 2px;
+      background-color: var(--border);
+      z-index: 0;
     }
     
     .step-number {
       width: 30px;
       height: 30px;
       border-radius: 50%;
-      background-color: var(--white);
-      border: 2px solid var(--border);
+      background-color: var(--border);
       display: flex;
       align-items: center;
       justify-content: center;
       font-weight: 600;
-      font-size: 0.875rem;
       margin-bottom: 0.5rem;
-      color: var(--text-light);
-      transition: all 0.3s ease;
-    }
-    
-    .step-label {
-      font-size: 0.75rem;
-      color: var(--text-light);
-      text-align: center;
-      transition: all 0.3s ease;
+      position: relative;
+      z-index: 1;
     }
     
     .step.active .step-number {
       background-color: var(--primary);
-      border-color: var(--primary);
-      color: var(--secondary);
+      color: #000;
     }
     
-    .step.active .step-label {
-      color: var(--text);
+    .step-label {
+      font-size: 0.85rem;
       font-weight: 500;
     }
     
-    .step.completed .step-number {
-      background-color: var(--primary);
-      border-color: var(--primary);
-      color: var(--secondary);
-    }
-    
-    .drop-area {
+    .upload-area {
       border: 2px dashed var(--border);
-      border-radius: var(--radius);
+      border-radius: 8px;
       padding: 2rem;
       text-align: center;
-      margin-bottom: 1.5rem;
       transition: all 0.3s ease;
       cursor: pointer;
     }
     
-    .drop-area:hover, .drop-area.drag-over {
+    .upload-area:hover {
       border-color: var(--primary);
-      background-color: rgba(255, 193, 7, 0.05);
     }
     
-    .drop-icon {
+    .upload-icon {
       font-size: 2rem;
+      color: var(--primary);
       margin-bottom: 1rem;
-      color: var(--text-light);
-    }
-    
-    .drop-text {
-      margin-bottom: 1rem;
-      font-size: 0.875rem;
-      color: var(--text);
     }
     
     .file-input {
@@ -212,238 +160,112 @@
     .btn {
       display: inline-block;
       background-color: var(--primary);
-      color: var(--secondary);
+      color: #000;
+      border: none;
       padding: 0.75rem 1.5rem;
       border-radius: 4px;
-      text-decoration: none;
       font-weight: 600;
-      transition: all 0.3s ease;
-      border: none;
       cursor: pointer;
-      font-size: 0.875rem;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      font-family: 'Poppins', sans-serif;
     }
     
     .btn:hover {
-      background-color: var(--primary-dark);
       transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
     }
     
-    .btn-secondary {
-      background-color: transparent;
-      border: 1px solid var(--border);
-      color: var(--text);
+    .file-info {
+      margin: 1rem 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
     }
     
-    .btn-secondary:hover {
-      background-color: rgba(0,0,0,0.05);
+    .file-name {
+      font-weight: 500;
+    }
+    
+    .file-size {
+      color: #666;
+      font-size: 0.85rem;
     }
     
     .progress-container {
-      margin-top: 1.5rem;
+      margin: 1.5rem 0;
     }
     
     .progress-bar {
-      height: 10px;
+      width: 100%;
+      height: 8px;
       background-color: var(--border);
-      border-radius: 5px;
+      border-radius: 4px;
       overflow: hidden;
-      margin-bottom: 0.5rem;
     }
     
-    .progress-fill {
+    .progress {
       height: 100%;
       background-color: var(--primary);
       width: 0%;
       transition: width 0.3s ease;
     }
     
-    .progress-text {
-      font-size: 0.75rem;
-      color: var(--text-light);
-      text-align: right;
-    }
-    
-    .file-info {
-      display: none;
-      margin-top: 1.5rem;
-      padding-top: 1.5rem;
-      border-top: 1px solid var(--border);
-    }
-    
-    .file-info.visible {
-      display: block;
-    }
-    
-    .file-info-item {
-      display: flex;
-      align-items: center;
-      margin-bottom: 0.75rem;
-    }
-    
-    .file-info-label {
-      font-size: 0.75rem;
-      color: var(--text-light);
-      width: 100px;
-    }
-    
-    .file-info-value {
-      font-size: 0.875rem;
-      font-weight: 500;
-    }
-    
     .preview-container {
-      overflow: auto;
-      max-height: 500px;
-    }
-    
-    .preview-header {
-      margin-bottom: 1rem;
-      padding-bottom: 1rem;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+      margin-top: 1.5rem;
     }
     
     .preview-title {
       font-size: 1.25rem;
       font-weight: 600;
-    }
-    
-    .preview-subtitle {
-      font-size: 0.875rem;
-      color: var(--text-light);
-      margin-top: 0.25rem;
-    }
-    
-    .table-container {
-      width: 100%;
-      overflow-x: auto;
-    }
-    
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.875rem;
-    }
-    
-    th, td {
-      padding: 0.75rem;
-      text-align: left;
-      border-bottom: 1px solid var(--border);
-    }
-    
-    th {
-      font-weight: 600;
-      background-color: rgba(0,0,0,0.02);
-    }
-    
-    tr:last-child td {
-      border-bottom: none;
-    }
-    
-    .preview-message {
-      text-align: center;
-      padding: 3rem 0;
-      color: var(--text-light);
-    }
-    
-    .preview-message p {
       margin-bottom: 1rem;
     }
     
-    .preview-actions {
-      margin-top: 1.5rem;
-      display: flex;
-      justify-content: flex-end;
-      gap: 1rem;
+    .preview-table {
+      width: 100%;
+      border-collapse: collapse;
     }
     
-    .preview-actions .btn {
-      min-width: 150px;
-    }
-    
-    .word-preview {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1rem;
-      margin-bottom: 1.5rem;
-    }
-    
-    .word-preview-col {
+    .preview-table th, .preview-table td {
       border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 1rem;
-      background-color: white;
+      padding: 0.5rem;
+      text-align: left;
     }
     
-    .word-preview-heading {
+    .preview-table th {
+      background-color: #f5f5f5;
       font-weight: 600;
-      margin-bottom: 0.5rem;
-      color: var(--text);
-      padding-bottom: 0.5rem;
-      border-bottom: 1px solid var(--border);
     }
     
-    .word-preview-item {
-      margin-bottom: 0.25rem;
-      font-size: 0.75rem;
+    .actions {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      margin-top: 1.5rem;
     }
     
-    .word-preview-value {
-      display: inline-block;
-      min-width: 30px;
-      text-align: right;
-      margin-left: 0.5rem;
-      font-weight: 500;
+    .hidden {
+      display: none;
     }
     
     footer {
       text-align: center;
-      padding: 1.5rem 0;
-      color: var(--text-light);
-      font-size: 0.75rem;
-      background-color: var(--white);
-      border-top: 1px solid var(--border);
-      margin-top: auto;
+      padding: 2rem 0;
+      color: #666;
+      font-size: 0.875rem;
+      margin-top: 2rem;
     }
     
     @media (max-width: 768px) {
-      .word-preview {
-        grid-template-columns: 1fr;
+      .steps {
+        flex-direction: column;
+        gap: 1rem;
       }
-    }
-
-    /* Estilos para documento HTML tabular */
-    .doc-table { 
-      border-collapse: collapse; 
-      width: 100%; 
-      margin-bottom: 20px; 
-    }
-    
-    .doc-table th, .doc-table td { 
-      border: 1px solid black; 
-      padding: 4px; 
-      text-align: center; 
-    }
-    
-    .doc-header { 
-      font-weight: bold; 
-      background-color: #f2f2f2; 
-    }
-    
-    .doc-client-name { 
-      font-weight: bold; 
-      text-align: left; 
-    }
-    
-    .doc-tb-header { 
-      background-color: yellow; 
-    }
-    
-    .doc-im-cell { 
-      background-color: green; 
-      color: white; 
+      
+      .step:not(:last-child):after {
+        display: none;
+      }
     }
   </style>
 </head>
@@ -458,87 +280,54 @@
     </div>
   </header>
   
-  <main>
-    <div class="container">
-      <div class="steps-container">
+  <main class="container">
+    <div class="app-container">
+      <div class="card">
         <div class="steps">
-          <div class="step active" id="step1">
+          <div class="step active">
             <div class="step-number">1</div>
-            <div class="step-label">Carregar Arquivo</div>
+            <div class="step-label">Upload do Excel</div>
           </div>
-          <div class="step" id="step2">
+          <div class="step">
             <div class="step-number">2</div>
             <div class="step-label">Processamento</div>
           </div>
-          <div class="step" id="step3">
+          <div class="step">
             <div class="step-number">3</div>
             <div class="step-label">Download do Word</div>
           </div>
         </div>
-      </div>
-      
-      <div class="app-container">
-        <div class="card">
-          <div id="fileUploadContainer">
-            <h2>Carregar Arquivo Excel</h2>
-            <p style="font-size: 0.875rem; color: var(--text-light); margin: 0.5rem 0 1.5rem;">
-              Selecione ou arraste o arquivo da planilha no formato Excel (.xlsx)
-            </p>
-            
-            <div class="drop-area" id="dropArea">
-              <div class="drop-icon">📄</div>
-              <div class="drop-text">Arraste e solte o arquivo Excel aqui</div>
-              <button class="btn" id="selectFileBtn">Selecionar Arquivo</button>
-              <input type="file" id="fileInput" class="file-input" accept=".xlsx,.xls" />
-            </div>
-            
-            <div class="progress-container" id="progressContainer" style="display: none;">
-              <div class="progress-bar">
-                <div class="progress-fill" id="progressFill"></div>
-              </div>
-              <div class="progress-text" id="progressText">0%</div>
-            </div>
-            
-            <div class="file-info" id="fileInfo">
-              <div class="file-info-item">
-                <div class="file-info-label">Arquivo:</div>
-                <div class="file-info-value" id="fileName"></div>
-              </div>
-              <div class="file-info-item">
-                <div class="file-info-label">Tamanho:</div>
-                <div class="file-info-value" id="fileSize"></div>
-              </div>
-              <div class="file-info-item">
-                <div class="file-info-label">Status:</div>
-                <div class="file-info-value" id="fileStatus">Pronto para processar</div>
-              </div>
+        
+        <div id="upload-section">
+          <div class="upload-area" id="drop-area">
+            <div class="upload-icon">📂</div>
+            <h3>Arraste o arquivo Excel ou clique para selecionar</h3>
+            <p>Aceita apenas arquivos .xlsx</p>
+            <input type="file" class="file-input" id="file-input" accept=".xlsx">
+          </div>
+          
+          <div class="file-info hidden" id="file-info">
+            <div class="file-name" id="file-name"></div>
+            <div class="file-size" id="file-size"></div>
+          </div>
+          
+          <div class="progress-container hidden" id="progress-container">
+            <div class="progress-bar">
+              <div class="progress" id="progress"></div>
             </div>
           </div>
         </div>
+      </div>
+      
+      <div class="card hidden" id="preview-section">
+        <h2 class="preview-title">Prévia do Documento</h2>
+        <div class="preview-content" id="preview-content">
+          <!-- Aqui será inserida a prévia dos dados -->
+        </div>
         
-        <div class="card">
-          <div id="previewContainer">
-            <div class="preview-header">
-              <div>
-                <div class="preview-title">Visualização do Documento</div>
-                <div class="preview-subtitle">Carregue um arquivo para visualizar a pré-formatação</div>
-              </div>
-            </div>
-            
-            <div class="preview-message" id="previewMessage">
-              <p>Nenhum arquivo carregado</p>
-              <p>Carregue um arquivo Excel para visualizar a pré-formatação do documento que será gerado</p>
-            </div>
-            
-            <div id="documentPreview" style="display: none;">
-              <!-- Preview content will be generated here -->
-            </div>
-            
-            <div class="preview-actions">
-              <button class="btn btn-secondary" id="resetBtn" disabled>Cancelar</button>
-              <button class="btn" id="generateBtn" disabled>Gerar Documento HTML</button>
-            </div>
-          </div>
+        <div class="actions">
+          <button class="btn" id="generate-btn">Gerar Documento Word</button>
+          <button class="btn" id="cancel-btn" style="background-color: #f44336;">Cancelar</button>
         </div>
       </div>
     </div>
@@ -546,721 +335,504 @@
   
   <footer>
     <div class="container">
-      <a href="index.html" style="color: inherit; text-decoration: none;">Voltar à Página Inicial</a> |
-      <a href="modelo.html" style="color: inherit; text-decoration: none;">Ver Modelo de Documento</a> |
       &copy; 2025 Móveis Bonafé. Todos os direitos reservados.
     </div>
   </footer>
 
+  <!-- Incluir bibliotecas necessárias -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/docx@7.8.0/build/index.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
+  
   <script>
-    // Type declarations for Excel data
-    /**
-     * @typedef {Object} ProductData
-     * @property {string} name - Product name
-     * @property {(number|null)[]} values - Array of values for each column
-     */
+    // Elementos DOM
+    const dropArea = document.getElementById('drop-area');
+    const fileInput = document.getElementById('file-input');
+    const fileInfo = document.getElementById('file-info');
+    const fileName = document.getElementById('file-name');
+    const fileSize = document.getElementById('file-size');
+    const progressContainer = document.getElementById('progress-container');
+    const progress = document.getElementById('progress');
+    const previewSection = document.getElementById('preview-section');
+    const previewContent = document.getElementById('preview-content');
+    const generateBtn = document.getElementById('generate-btn');
+    const cancelBtn = document.getElementById('cancel-btn');
+    const steps = document.querySelectorAll('.step');
     
-    /**
-     * @typedef {Object} DataBlock
-     * @property {string} name - Block name
-     * @property {ProductData[]} products - Array of products in this block
-     */
+    // Variáveis globais
+    let excelData = null;
     
-    /**
-     * @typedef {Object} ExcelData
-     * @property {string} fileName - Name of the processed file
-     * @property {number} fileSize - Size of the file in bytes
-     * @property {DataBlock[]} processedData - Processed data blocks
-     * @property {ProductData[]} [totalProducts] - Products from the CARGA tab for TOTAL section
-     */
-
-    // Formatting utilities
-    function formatFileSize(bytes) {
-      if (bytes === 0) return '0 Bytes';
-      const k = 1024;
-      const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-      const i = Math.floor(Math.log(bytes) / Math.log(k));
-      return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-    }
-
-    function truncateText(text, maxLength) {
-      if (!text) return '';
-      return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
-    }
-
-    function formatNumberWithLeadingZeros(value) {
-      if (value === null || value === undefined) return '000';
-      let numValue = typeof value === 'string' ? parseFloat(value) : value;
-      if (isNaN(numValue)) return '000';
+    // Eventos de upload
+    dropArea.addEventListener('click', () => {
+      fileInput.click();
+    });
+    
+    dropArea.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropArea.style.backgroundColor = '#f9f9f9';
+    });
+    
+    dropArea.addEventListener('dragleave', () => {
+      dropArea.style.backgroundColor = '';
+    });
+    
+    dropArea.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropArea.style.backgroundColor = '';
       
-      return numValue.toString().padStart(3, '0');
-    }
-
-    // Excel processing
-    async function processExcelFile(file) {
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
+      if (e.dataTransfer.files.length) {
+        handleFile(e.dataTransfer.files[0]);
+      }
+    });
+    
+    fileInput.addEventListener('change', () => {
+      if (fileInput.files.length) {
+        handleFile(fileInput.files[0]);
+      }
+    });
+    
+    // Processar arquivo
+    function handleFile(file) {
+      if (!file.name.endsWith('.xlsx')) {
+        alert('Por favor, selecione um arquivo Excel (.xlsx)');
+        return;
+      }
+      
+      // Mostrar informações do arquivo
+      fileName.textContent = file.name;
+      fileSize.textContent = formatFileSize(file.size);
+      fileInfo.classList.remove('hidden');
+      
+      // Mostrar progresso
+      progressContainer.classList.remove('hidden');
+      
+      // Simular progresso
+      let progressValue = 0;
+      const progressInterval = setInterval(() => {
+        progressValue += 5;
+        progress.style.width = `${progressValue}%`;
         
-        reader.onload = function(e) {
-          try {
-            const data = new Uint8Array(e.target.result);
-            const workbook = XLSX.read(data, { type: 'array' });
+        if (progressValue >= 100) {
+          clearInterval(progressInterval);
+          setTimeout(() => {
+            // Mudar para o próximo passo
+            steps[0].classList.remove('active');
+            steps[1].classList.add('active');
             
-            // Check if the required sheets exist
-            const requiredSheets = ['LISTA POR PEDIDO', 'CARGA'];
-            const sheetNames = workbook.SheetNames;
-            
-            for (const sheet of requiredSheets) {
-              if (!sheetNames.includes(sheet)) {
-                reject(new Error(`Planilha necessária '${sheet}' não encontrada no arquivo.`));
-                return;
-              }
-            }
-            
-            // Process the LISTA POR PEDIDO sheet
-            const worksheet = workbook.Sheets['LISTA POR PEDIDO'];
-            const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-            
-            // Process CARGA sheet for TOTAL section
-            const cargaWorksheet = workbook.Sheets['CARGA'];
-            const cargaJsonData = XLSX.utils.sheet_to_json(cargaWorksheet, { header: 1 });
-            
-            const processedData = processData(jsonData);
-            const totalProducts = processTotalData(cargaJsonData);
-            
-            resolve({
-              fileName: file.name,
-              fileSize: file.size,
-              processedData,
-              totalProducts
-            });
-          } catch (error) {
-            reject(error);
-          }
+            // Processar dados do Excel
+            processExcelFile(file);
+          }, 500);
+        }
+      }, 100);
+    }
+    
+    // Função para formatar o tamanho do arquivo
+    function formatFileSize(bytes) {
+      if (bytes < 1024) return bytes + ' bytes';
+      else if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+      else return (bytes / 1048576).toFixed(1) + ' MB';
+    }
+    
+    // Processar arquivo Excel
+    function processExcelFile(file) {
+      const reader = new FileReader();
+      
+      reader.onload = function(e) {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+        
+        // Obter dados da primeira planilha (aba)
+        const sheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+        const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+        
+        // Processe os dados
+        excelData = {
+          fileName: file.name,
+          fileSize: file.size,
+          processedData: processData(jsonData)
         };
         
-        reader.onerror = function() {
-          reject(new Error('Erro ao ler o arquivo.'));
-        };
+        // Mostrar prévia
+        displayPreview(excelData);
         
-        reader.readAsArrayBuffer(file);
-      });
+        // Mudar para o próximo passo
+        steps[1].classList.remove('active');
+        steps[2].classList.add('active');
+      };
+      
+      reader.readAsArrayBuffer(file);
     }
-
+    
+    // Processar dados do Excel
     function processData(jsonData) {
+      // Exemplo simplificado - na aplicação real, você implementaria a lógica de processamento completa
       const blocks = [];
       let currentBlock = null;
-      let columnIndices = null;
       
-      // Find the header row to determine column indices
-      for (let i = 0; i < jsonData.length; i++) {
+      for (let i = 1; i < jsonData.length; i++) {
         const row = jsonData[i];
-        if (row && Array.isArray(row) && row.some(cell => cell === 'CLIENTE')) {
-          // The indices of the columns CE, MG, TB, IM
-          columnIndices = [
-            row.indexOf('CE'),
-            row.indexOf('MG'),
-            row.indexOf('TB'),
-            row.indexOf('IM')
-          ];
-          break;
-        }
-      }
-      
-      if (!columnIndices || columnIndices.some(idx => idx === -1)) {
-        throw new Error('Cabeçalho com colunas CE, MG, TB, IM não encontrado.');
-      }
-      
-      // Process the data rows
-      for (let i = 0; i < jsonData.length; i++) {
-        const row = jsonData[i];
-        if (!row || !Array.isArray(row) || row.length === 0) continue;
         
-        // Check if this is a CLIENTE row (start of a new block)
-        if (row[0] === 'CLIENTE' && row.length > 1 && row[1]) {
+        if (row && row[0] && typeof row[0] === 'string' && row[0].trim() !== '') {
+          // Nova seção/cliente
           if (currentBlock) {
-            // Sort products alphabetically
-            currentBlock.products.sort((a, b) => a.name.localeCompare(b.name));
             blocks.push(currentBlock);
           }
           
           currentBlock = {
-            name: row[1].toString(),
+            name: row[0],
             products: []
           };
-        }
-        // If we're inside a block and this is a product row
-        else if (currentBlock && row[0] && row[0] !== 'CLIENTE' && row[0] !== 'ITEM') {
-          const productName = row[0].toString();
-          const values = columnIndices.map(idx => {
-            if (idx >= 0 && idx < row.length) {
-              const val = row[idx];
-              return (val !== undefined && val !== null && val !== '') ? Number(val) : null;
-            }
-            return null;
-          });
-          
+        } else if (row && row[1] && currentBlock) {
+          // Produto
           currentBlock.products.push({
-            name: productName,
-            values: values
+            name: row[1],
+            values: [row[2], row[3], row[4], row[5]]
           });
         }
       }
       
-      // Add the last block if it exists
+      // Adicionar o último bloco
       if (currentBlock) {
-        // Sort products alphabetically
-        currentBlock.products.sort((a, b) => a.name.localeCompare(b.name));
         blocks.push(currentBlock);
       }
       
       return blocks;
     }
-
-    function processTotalData(jsonData) {
-      const totalProducts = [];
-      let columnIndices = null;
-      let dataStarted = false;
-      
-      // Find the header row to determine column indices
-      for (let i = 0; i < jsonData.length; i++) {
-        const row = jsonData[i];
-        if (row && Array.isArray(row) && row.some(cell => cell === 'PRODUTO')) {
-          // The indices of the columns PRODUTO, CE, MG, TB, IM
-          columnIndices = [
-            row.indexOf('PRODUTO'),
-            row.indexOf('CE'),
-            row.indexOf('MG'),
-            row.indexOf('TB'),
-            row.indexOf('IM')
-          ];
-          dataStarted = true;
-          continue;
-        }
-        
-        if (dataStarted && columnIndices && row && row.length > 0) {
-          const prodIdx = columnIndices[0];
-          if (prodIdx >= 0 && prodIdx < row.length && row[prodIdx]) {
-            const productName = row[prodIdx].toString();
-            const values = columnIndices.slice(1).map(idx => {
-              if (idx >= 0 && idx < row.length) {
-                const val = row[idx];
-                return (val !== undefined && val !== null && val !== '') ? Number(val) : null;
-              }
-              return null;
-            });
-            
-            totalProducts.push({
-              name: productName,
-              values: values
-            });
-          }
-        }
+    
+    // Exibir prévia dos dados processados
+    function displayPreview(data) {
+      if (!data || !data.processedData || data.processedData.length === 0) {
+        previewContent.innerHTML = '<p>Nenhum dado encontrado para processar.</p>';
+        return;
       }
       
-      return totalProducts;
-    }
-
-    // Generate HTML document
-    function generateHtmlDocument(excelData) {
-      const { processedData, totalProducts } = excelData;
+      let previewHtml = '<div style="max-height: 400px; overflow-y: auto;">';
       
-      // Create HTML content
-      let htmlContent = `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <title>Móveis Bonafé - Lista de Entrega</title>
-  <style>
-    body { 
-      font-family: Arial, sans-serif; 
-      margin: 20px;
-    }
-    table { 
-      border-collapse: collapse; 
-      width: 100%; 
-      margin-bottom: 20px; 
-    }
-    th, td { 
-      border: 1px solid black; 
-      padding: 4px; 
-      text-align: center; 
-    }
-    .header { 
-      font-weight: bold; 
-      background-color: #f2f2f2; 
-    }
-    .client-name { 
-      font-weight: bold; 
-      text-align: left; 
-    }
-    .tb-header { 
-      background-color: yellow; 
-    }
-    .im-cell { 
-      background-color: green; 
-      color: white; 
-    }
-    h1 { 
-      text-align: center; 
-      color: #0070c0; 
-    }
-    .no-print {
-      margin-top: 40px;
-      padding: 15px;
-      background-color: #f0f0f0;
-      border-radius: 5px;
-    }
-    .btn {
-      display: inline-block;
-      background-color: #0070c0;
-      color: white;
-      padding: 8px 15px;
-      text-decoration: none;
-      border-radius: 4px;
-      margin-top: 10px;
+      // Mostrar alguns blocos de exemplo
+      const maxBlocksToShow = Math.min(3, data.processedData.length);
+      
+      for (let i = 0; i < maxBlocksToShow; i++) {
+        const block = data.processedData[i];
+        
+        previewHtml += `
+          <div style="margin-bottom: 1.5rem;">
+            <h3 style="margin-bottom: 0.5rem;">${block.name}</h3>
+            <table class="preview-table">
+              <thead>
+                <tr>
+                  <th>Produto</th>
+                  <th>CE</th>
+                  <th>MG</th>
+                  <th>TB</th>
+                  <th>IM</th>
+                </tr>
+              </thead>
+              <tbody>
+        `;
+        
+        // Mostrar alguns produtos de exemplo
+        const maxProductsToShow = Math.min(5, block.products.length);
+        
+        for (let j = 0; j < maxProductsToShow; j++) {
+          const product = block.products[j];
+          
+          previewHtml += `
+            <tr>
+              <td>${product.name}</td>
+              <td>${product.values[0] || ''}</td>
+              <td>${product.values[1] || ''}</td>
+              <td>${product.values[2] || ''}</td>
+              <td>${product.values[3] || ''}</td>
+            </tr>
+          `;
+        }
+        
+        if (block.products.length > maxProductsToShow) {
+          previewHtml += `
+            <tr>
+              <td colspan="5" style="text-align: center;">(${block.products.length - maxProductsToShow} produtos adicionais)</td>
+            </tr>
+          `;
+        }
+        
+        previewHtml += `
+              </tbody>
+            </table>
+          </div>
+        `;
+      }
+      
+      if (data.processedData.length > maxBlocksToShow) {
+        previewHtml += `
+          <div style="text-align: center; padding: 1rem; background-color: #f5f5f5; border-radius: 4px;">
+            <p>(${data.processedData.length - maxBlocksToShow} blocos adicionais)</p>
+          </div>
+        `;
+      }
+      
+      previewHtml += '</div>';
+      
+      previewContent.innerHTML = previewHtml;
+      previewSection.classList.remove('hidden');
     }
     
-    @media print {
-      .no-print {
-        display: none;
-      }
-    }
-  </style>
-</head>
-<body>
-  <h1>MÓVEIS BONAFÉ - LISTA DE ENTREGA</h1>
-`;
-      
-      // Process data into pairs of clients
-      for (let i = 0; i < processedData.length; i += 2) {
-        const leftBlock = processedData[i];
-        const rightBlock = i + 1 < processedData.length ? processedData[i + 1] : null;
-        
-        // Start table
-        htmlContent += `
-  <table>
-    <tr class="header">
-      <th class="client-name">${leftBlock.name}</th>
-      <th>CE</th>
-      <th>MG</th>
-      <th class="tb-header">TB</th>
-      <th>IM</th>`;
-        
-        // Add right client if exists
-        if (rightBlock) {
-          htmlContent += `
-      <th class="client-name">${rightBlock.name}</th>
-      <th>CE</th>
-      <th>MG</th>
-      <th class="tb-header">TB</th>
-      <th>IM</th>`;
-        } else {
-          htmlContent += `
-      <th class="client-name"></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>`;
-        }
-        
-        htmlContent += `
-    </tr>`;
-        
-        // Calculate max rows
-        const leftProducts = leftBlock.products || [];
-        const rightProducts = rightBlock ? (rightBlock.products || []) : [];
-        const maxRows = Math.max(leftProducts.length, rightProducts.length);
-        
-        // Add product rows
-        for (let j = 0; j < maxRows; j++) {
-          const leftProduct = j < leftProducts.length ? leftProducts[j] : null;
-          const rightProduct = j < rightProducts.length ? rightProducts[j] : null;
-          
-          htmlContent += `
-    <tr>`;
-          
-          // Left product cells
-          if (leftProduct) {
-            htmlContent += `
-      <td>${leftProduct.name}</td>
-      <td>${leftProduct.values[0] ? formatNumberWithLeadingZeros(leftProduct.values[0]) : ''}</td>
-      <td>${leftProduct.values[1] ? formatNumberWithLeadingZeros(leftProduct.values[1]) : ''}</td>
-      <td>${leftProduct.values[2] ? formatNumberWithLeadingZeros(leftProduct.values[2]) : ''}</td>
-      <td ${leftProduct.values[3] ? 'class="im-cell"' : ''}>${leftProduct.values[3] ? formatNumberWithLeadingZeros(leftProduct.values[3]) : ''}</td>`;
-          } else {
-            htmlContent += `
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>`;
-          }
-          
-          // Right product cells
-          if (rightProduct) {
-            htmlContent += `
-      <td>${rightProduct.name}</td>
-      <td>${rightProduct.values[0] ? formatNumberWithLeadingZeros(rightProduct.values[0]) : ''}</td>
-      <td>${rightProduct.values[1] ? formatNumberWithLeadingZeros(rightProduct.values[1]) : ''}</td>
-      <td>${rightProduct.values[2] ? formatNumberWithLeadingZeros(rightProduct.values[2]) : ''}</td>
-      <td ${rightProduct.values[3] ? 'class="im-cell"' : ''}>${rightProduct.values[3] ? formatNumberWithLeadingZeros(rightProduct.values[3]) : ''}</td>`;
-          } else {
-            htmlContent += `
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>`;
-          }
-          
-          htmlContent += `
-    </tr>`;
-        }
-        
-        // End table
-        htmlContent += `
-  </table>`;
+    // Botão para gerar documento
+    generateBtn.addEventListener('click', () => {
+      if (!excelData) {
+        alert('Nenhum dado disponível para gerar o documento.');
+        return;
       }
       
-      // Add TOTAL section if available
-      if (totalProducts && totalProducts.length > 0) {
-        htmlContent += `
-  <table>
-    <tr class="header">
-      <th class="client-name">TOTAL</th>
-      <th>CE</th>
-      <th>MG</th>
-      <th class="tb-header">TB</th>
-      <th>IM</th>
-      <th class="client-name"></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-    </tr>`;
-        
-        for (const product of totalProducts) {
-          htmlContent += `
-    <tr>
-      <td>${product.name}</td>
-      <td>${product.values[0] ? formatNumberWithLeadingZeros(product.values[0]) : ''}</td>
-      <td>${product.values[1] ? formatNumberWithLeadingZeros(product.values[1]) : ''}</td>
-      <td>${product.values[2] ? formatNumberWithLeadingZeros(product.values[2]) : ''}</td>
-      <td ${product.values[3] ? 'class="im-cell"' : ''}>${product.values[3] ? formatNumberWithLeadingZeros(product.values[3]) : ''}</td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-    </tr>`;
+      // Mostrar mensagem de processamento
+      const loadingDiv = document.createElement('div');
+      loadingDiv.style.position = 'fixed';
+      loadingDiv.style.top = '0';
+      loadingDiv.style.left = '0';
+      loadingDiv.style.width = '100%';
+      loadingDiv.style.height = '100%';
+      loadingDiv.style.backgroundColor = 'rgba(0,0,0,0.5)';
+      loadingDiv.style.display = 'flex';
+      loadingDiv.style.alignItems = 'center';
+      loadingDiv.style.justifyContent = 'center';
+      loadingDiv.style.zIndex = '1000';
+      
+      loadingDiv.innerHTML = `
+        <div style="background-color:white;padding:20px;border-radius:8px;text-align:center;">
+          <div style="margin-bottom:15px;font-size:18px;font-weight:600;">Gerando documento...</div>
+          <div style="width:50px;height:50px;border:5px solid #f3f3f3;border-top:5px solid #ffc107;border-radius:50%;margin:0 auto;animation:spin 1s linear infinite;"></div>
+        </div>
+      `;
+      
+      document.body.appendChild(loadingDiv);
+      document.body.style.overflow = 'hidden';
+      
+      // Adicionar estilo para animação de loading
+      const style = document.createElement('style');
+      style.textContent = `
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
         }
-        
-        htmlContent += `
-  </table>`;
-      }
-      
-      // Add printing instructions
-      htmlContent += `
-  <div class="no-print">
-    <h2>Instruções para impressão</h2>
-    <p>Para salvar este documento como PDF ou imprimi-lo:</p>
-    <ol>
-      <li>Pressione Ctrl+P (ou Cmd+P no Mac)</li>
-      <li>Selecione "Salvar como PDF" na opção de impressora</li>
-      <li>Clique em "Salvar" para gerar o arquivo PDF</li>
-    </ol>
-    <p>A impressão vai ocultar automaticamente estas instruções.</p>
-    <a href="javascript:window.print()" class="btn">Imprimir/Salvar como PDF</a>
-    <a href="javascript:window.close()" class="btn" style="background-color: #666; margin-left: 10px;">Fechar esta janela</a>
-  </div>
-</body>
-</html>`;
-      
-      // Save as HTML file
-      const blob = new Blob([htmlContent], { type: 'text/html' });
-      saveAs(blob, `Lista_Entrega_${new Date().toISOString().slice(0, 10)}.html`);
-    }
+      `;
+      document.head.appendChild(style);
 
-    // Generate preview of document
-    function generatePreview(data) {
-      if (!data) return;
-      
-      const documentPreview = document.getElementById('documentPreview');
-      const previewMessage = document.getElementById('previewMessage');
-      
-      previewMessage.style.display = 'none';
-      documentPreview.style.display = 'block';
-      
-      // Create a simple preview of the first few clients
-      let previewHtml = '<h3>Prévia do documento que será gerado:</h3>';
-      
-      const previewCount = Math.min(2, data.processedData.length);
-      const blocks = data.processedData.slice(0, previewCount);
-      
-      // Add sample table
-      previewHtml += `
-      <table class="doc-table">
-        <tr class="doc-header">
-          <th class="doc-client-name">${blocks[0].name}</th>
-          <th>CE</th>
-          <th>MG</th>
-          <th class="doc-tb-header">TB</th>
-          <th>IM</th>`;
-      
-      if (blocks.length > 1) {
-        previewHtml += `
-          <th class="doc-client-name">${blocks[1].name}</th>
-          <th>CE</th>
-          <th>MG</th>
-          <th class="doc-tb-header">TB</th>
-          <th>IM</th>`;
-      } else {
-        previewHtml += `
-          <th class="doc-client-name"></th>
-          <th></th>
-          <th></th>
-          <th></th>
-          <th></th>`;
-      }
-      
-      previewHtml += `
-        </tr>`;
-      
-      // Calculate max rows for preview
-      const maxPreviewRows = 5;
-      const block1Products = blocks[0].products.slice(0, maxPreviewRows);
-      const block2Products = blocks.length > 1 ? blocks[1].products.slice(0, maxPreviewRows) : [];
-      const maxRows = Math.max(block1Products.length, block2Products.length);
-      
-      // Add product rows
-      for (let i = 0; i < maxRows; i++) {
-        const leftProduct = i < block1Products.length ? block1Products[i] : null;
-        const rightProduct = i < block2Products.length ? block2Products[i] : null;
-        
-        previewHtml += `
-        <tr>`;
-        
-        // Left product
-        if (leftProduct) {
-          previewHtml += `
-          <td>${leftProduct.name}</td>
-          <td>${leftProduct.values[0] ? formatNumberWithLeadingZeros(leftProduct.values[0]) : ''}</td>
-          <td>${leftProduct.values[1] ? formatNumberWithLeadingZeros(leftProduct.values[1]) : ''}</td>
-          <td>${leftProduct.values[2] ? formatNumberWithLeadingZeros(leftProduct.values[2]) : ''}</td>
-          <td ${leftProduct.values[3] ? 'class="doc-im-cell"' : ''}>${leftProduct.values[3] ? formatNumberWithLeadingZeros(leftProduct.values[3]) : ''}</td>`;
-        } else {
-          previewHtml += `
-          <td></td>
-          <td></td>
-          <td></td>
-          <td></td>
-          <td></td>`;
+      // Tentar gerar o documento usando docx.js
+      setTimeout(() => {
+        try {
+          generateWordDocument(excelData);
+          document.body.removeChild(loadingDiv);
+          document.body.style.overflow = '';
+        } catch (error) {
+          console.error('Erro ao gerar documento:', error);
+          document.body.removeChild(loadingDiv);
+          document.body.style.overflow = '';
+          alert('Ocorreu um erro ao gerar o documento. Por favor, tente novamente.');
         }
+      }, 1000);
+    });
+    
+    // Função para gerar documento Word usando docx.js
+    function generateWordDocument(data) {
+      // Criar documento
+      const { Document, Packer, Paragraph, Table, TableCell, TableRow, BorderStyle, TextRun, AlignmentType, HeadingLevel } = docx;
+      
+      // Preparar as tabelas para o documento
+      const tables = [];
+      
+      // Número máximo de linhas por página
+      const maxLinesPerPage = 40;
+      
+      // Contador de linhas atual
+      let currentLineCount = 0;
+      
+      // Para cada bloco de cliente
+      for (let i = 0; i < data.processedData.length; i++) {
+        const block = data.processedData[i];
         
-        // Right product
-        if (rightProduct) {
-          previewHtml += `
-          <td>${rightProduct.name}</td>
-          <td>${rightProduct.values[0] ? formatNumberWithLeadingZeros(rightProduct.values[0]) : ''}</td>
-          <td>${rightProduct.values[1] ? formatNumberWithLeadingZeros(rightProduct.values[1]) : ''}</td>
-          <td>${rightProduct.values[2] ? formatNumberWithLeadingZeros(rightProduct.values[2]) : ''}</td>
-          <td ${rightProduct.values[3] ? 'class="doc-im-cell"' : ''}>${rightProduct.values[3] ? formatNumberWithLeadingZeros(rightProduct.values[3]) : ''}</td>`;
-        } else {
-          previewHtml += `
-          <td></td>
-          <td></td>
-          <td></td>
-          <td></td>
-          <td></td>`;
-        }
+        // Ordenar produtos alfabeticamente
+        block.products.sort((a, b) => a.name.localeCompare(b.name));
         
-        previewHtml += `
-        </tr>`;
-      }
-      
-      previewHtml += `
-      </table>
-      <p style="text-align: center; font-style: italic; color: #666;">Esta é apenas uma prévia. O documento completo incluirá todos os clientes e produtos.</p>`;
-      
-      documentPreview.innerHTML = previewHtml;
-    }
-
-    // Main application code
-    document.addEventListener('DOMContentLoaded', function() {
-      // DOM elements
-      const dropArea = document.getElementById('dropArea');
-      const fileInput = document.getElementById('fileInput');
-      const selectFileBtn = document.getElementById('selectFileBtn');
-      const progressContainer = document.getElementById('progressContainer');
-      const progressFill = document.getElementById('progressFill');
-      const progressText = document.getElementById('progressText');
-      const fileInfo = document.getElementById('fileInfo');
-      const fileName = document.getElementById('fileName');
-      const fileSize = document.getElementById('fileSize');
-      const fileStatus = document.getElementById('fileStatus');
-      const resetBtn = document.getElementById('resetBtn');
-      const generateBtn = document.getElementById('generateBtn');
-      const previewMessage = document.getElementById('previewMessage');
-      const documentPreview = document.getElementById('documentPreview');
-      
-      // Step indicators
-      const step1 = document.getElementById('step1');
-      const step2 = document.getElementById('step2');
-      const step3 = document.getElementById('step3');
-      
-      // State
-      let currentExcelData = null;
-      let processingComplete = false;
-      
-      // File selection button
-      selectFileBtn.addEventListener('click', function() {
-        fileInput.click();
-      });
-      
-      // File input change
-      fileInput.addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        if (file) {
-          handleFile(file);
-        }
-      });
-      
-      // Drag and drop handlers
-      ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-        dropArea.addEventListener(eventName, preventDefaults, false);
-      });
-      
-      function preventDefaults(e) {
-        e.preventDefault();
-        e.stopPropagation();
-      }
-      
-      ['dragenter', 'dragover'].forEach(eventName => {
-        dropArea.addEventListener(eventName, function() {
-          dropArea.classList.add('drag-over');
-        }, false);
-      });
-      
-      ['dragleave', 'drop'].forEach(eventName => {
-        dropArea.addEventListener(eventName, function() {
-          dropArea.classList.remove('drag-over');
-        }, false);
-      });
-      
-      dropArea.addEventListener('drop', function(e) {
-        const file = e.dataTransfer.files[0];
-        if (file) {
-          handleFile(file);
-        }
-      }, false);
-      
-      // Reset button
-      resetBtn.addEventListener('click', function() {
-        resetApp();
-      });
-      
-      // Generate button
-      generateBtn.addEventListener('click', function() {
-        if (currentExcelData) {
-          generateHtmlDocument(currentExcelData);
-        }
-      });
-      
-      // Handle file upload and processing
-      function handleFile(file) {
-        if (!file) return;
-        
-        const fileExtension = file.name.split('.').pop().toLowerCase();
-        if (fileExtension !== 'xlsx' && fileExtension !== 'xls') {
-          alert('Por favor, selecione um arquivo Excel válido (.xlsx ou .xls)');
-          return;
-        }
-        
-        // Reset the app state
-        resetApp();
-        
-        // Update file info
-        fileInfo.classList.add('visible');
-        fileName.textContent = truncateText(file.name, 25);
-        fileSize.textContent = formatFileSize(file.size);
-        fileStatus.textContent = 'Processando...';
-        
-        // Show progress
-        progressContainer.style.display = 'block';
-        updateProgress(10);
-        
-        // Update steps
-        step1.classList.remove('active');
-        step1.classList.add('completed');
-        step2.classList.add('active');
-        
-        // Start processing
-        processExcelFile(file)
-          .then(data => {
-            updateProgress(90);
-            
-            // Update app state
-            currentExcelData = data;
-            processingComplete = true;
-            
-            // Update UI
-            fileStatus.textContent = 'Processado com sucesso';
-            updateProgress(100);
-            
-            // Enable buttons
-            resetBtn.disabled = false;
-            generateBtn.disabled = false;
-            
-            // Update steps
-            step2.classList.remove('active');
-            step2.classList.add('completed');
-            step3.classList.add('active');
-            
-            // Generate preview
-            generatePreview(data);
+        // Criar linhas da tabela
+        const rows = [
+          new TableRow({
+            children: [
+              new TableCell({
+                children: [new Paragraph({
+                  text: block.name,
+                  heading: HeadingLevel.HEADING_3,
+                  bold: true
+                })],
+                columnSpan: 5
+              })
+            ]
+          }),
+          new TableRow({
+            children: [
+              new TableCell({
+                children: [new Paragraph({
+                  text: "PRODUTO",
+                  bold: true
+                })],
+                width: {
+                  size: 50,
+                  type: "percentage"
+                }
+              }),
+              new TableCell({
+                children: [new Paragraph({
+                  text: "CE",
+                  alignment: AlignmentType.CENTER,
+                  bold: true
+                })]
+              }),
+              new TableCell({
+                children: [new Paragraph({
+                  text: "MG",
+                  alignment: AlignmentType.CENTER,
+                  bold: true
+                })]
+              }),
+              new TableCell({
+                children: [new Paragraph({
+                  text: "TB",
+                  alignment: AlignmentType.CENTER,
+                  bold: true
+                })],
+                shading: {
+                  fill: "FFF2CC"
+                }
+              }),
+              new TableCell({
+                children: [new Paragraph({
+                  text: "IM",
+                  alignment: AlignmentType.CENTER,
+                  bold: true
+                })],
+                shading: {
+                  fill: "D9EAD3"
+                }
+              })
+            ]
           })
-          .catch(error => {
-            console.error('Error processing file:', error);
-            fileStatus.textContent = 'Erro ao processar: ' + error.message;
-            updateProgress(0);
-          });
+        ];
+        
+        // Adicionar produtos
+        for (const product of block.products) {
+          rows.push(
+            new TableRow({
+              children: [
+                new TableCell({
+                  children: [new Paragraph(product.name)]
+                }),
+                new TableCell({
+                  children: [new Paragraph({
+                    text: product.values[0] ? product.values[0].toString() : "",
+                    alignment: AlignmentType.CENTER
+                  })]
+                }),
+                new TableCell({
+                  children: [new Paragraph({
+                    text: product.values[1] ? product.values[1].toString() : "",
+                    alignment: AlignmentType.CENTER
+                  })]
+                }),
+                new TableCell({
+                  children: [new Paragraph({
+                    text: product.values[2] ? product.values[2].toString() : "",
+                    alignment: AlignmentType.CENTER
+                  })],
+                  shading: {
+                    fill: "FFF2CC"
+                  }
+                }),
+                new TableCell({
+                  children: [new Paragraph({
+                    text: product.values[3] ? product.values[3].toString() : "",
+                    alignment: AlignmentType.CENTER
+                  })],
+                  shading: {
+                    fill: "D9EAD3"
+                  }
+                })
+              ]
+            })
+          );
+        }
+        
+        // Adicionar a tabela
+        tables.push(
+          new Table({
+            rows,
+            width: {
+              size: 100,
+              type: "percentage"
+            },
+            borders: {
+              top: { style: BorderStyle.SINGLE, size: 1 },
+              bottom: { style: BorderStyle.SINGLE, size: 1 },
+              left: { style: BorderStyle.SINGLE, size: 1 },
+              right: { style: BorderStyle.SINGLE, size: 1 },
+              insideHorizontal: { style: BorderStyle.SINGLE, size: 1 },
+              insideVertical: { style: BorderStyle.SINGLE, size: 1 }
+            }
+          })
+        );
+        
+        // Adicionar espaço entre as tabelas
+        tables.push(
+          new Paragraph({
+            text: "",
+            spacing: {
+              after: 200
+            }
+          })
+        );
       }
       
-      // Update progress bar
-      function updateProgress(percent) {
-        progressFill.style.width = percent + '%';
-        progressText.textContent = percent + '%';
-      }
+      // Criar o documento
+      const doc = new Document({
+        sections: [
+          {
+            children: [
+              new Paragraph({
+                text: "MÓVEIS BONAFÉ - LISTA DE ENTREGA",
+                heading: HeadingLevel.HEADING_1,
+                alignment: AlignmentType.CENTER,
+                spacing: {
+                  after: 200
+                }
+              }),
+              ...tables
+            ]
+          }
+        ]
+      });
       
-      // Reset the application
-      function resetApp() {
-        // Reset state
-        currentExcelData = null;
-        processingComplete = false;
-        
-        // Reset UI
-        fileInput.value = '';
-        fileInfo.classList.remove('visible');
-        progressContainer.style.display = 'none';
-        updateProgress(0);
-        previewMessage.style.display = 'block';
-        documentPreview.style.display = 'none';
-        documentPreview.innerHTML = '';
-        
-        // Reset buttons
-        resetBtn.disabled = true;
-        generateBtn.disabled = true;
-        
-        // Reset steps
-        step1.classList.add('active');
-        step1.classList.remove('completed');
-        step2.classList.remove('active');
-        step2.classList.remove('completed');
-        step3.classList.remove('active');
-        step3.classList.remove('completed');
-      }
+      // Gerar e baixar o documento
+      Packer.toBlob(doc).then(blob => {
+        saveAs(blob, "Lista_Entrega_Moveis_Bonafe.docx");
+      });
+    }
+    
+    // Botão para cancelar
+    cancelBtn.addEventListener('click', () => {
+      // Resetar tudo
+      fileInput.value = '';
+      fileInfo.classList.add('hidden');
+      progressContainer.classList.add('hidden');
+      previewSection.classList.add('hidden');
+      progress.style.width = '0%';
+      excelData = null;
+      
+      // Resetar passos
+      steps.forEach((step, index) => {
+        if (index === 0) {
+          step.classList.add('active');
+        } else {
+          step.classList.remove('active');
+        }
+      });
     });
   </script>
 </body>
