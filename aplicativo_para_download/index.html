@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Móveis Bonafé - Gerador de Lista de Entrega</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #ffc107;
+      --primary-dark: #ffb300;
+      --secondary: #000;
+      --text: #333;
+      --text-light: #666;
+      --bg: #f9f9f9;
+      --white: #fff;
+      --border: #e0e0e0;
+      --shadow: 0 4px 6px rgba(0,0,0,0.05);
+      --radius: 8px;
+    }
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      font-family: 'Poppins', sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    header {
+      padding: 2rem 0;
+      background: linear-gradient(45deg, #000, #333);
+      color: white;
+      text-align: center;
+    }
+    
+    .logo {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      background: linear-gradient(to right, #fff, var(--primary));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+    
+    .tagline {
+      font-size: 1rem;
+      opacity: 0.8;
+    }
+    
+    main {
+      flex: 1;
+      padding: 2rem 0;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 1rem;
+    }
+    
+    .hero {
+      text-align: center;
+      margin-bottom: 3rem;
+    }
+    
+    .hero-title {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+      color: var(--secondary);
+    }
+    
+    .hero-description {
+      font-size: 1.1rem;
+      color: var(--text-light);
+      max-width: 800px;
+      margin: 0 auto 2rem;
+      line-height: 1.6;
+    }
+    
+    .cta-button {
+      display: inline-block;
+      background-color: var(--primary);
+      color: var(--secondary);
+      padding: 0.75rem 2rem;
+      border-radius: var(--radius);
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.3s ease;
+      font-size: 1.1rem;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    
+    .cta-button:hover {
+      background-color: var(--primary-dark);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+    }
+    
+    .secondary-button {
+      display: inline-block;
+      background-color: transparent;
+      color: var(--text);
+      padding: 0.75rem 2rem;
+      border-radius: var(--radius);
+      font-weight: 500;
+      text-decoration: none;
+      transition: all 0.3s ease;
+      font-size: 1rem;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      margin-left: 1rem;
+    }
+    
+    .secondary-button:hover {
+      background-color: rgba(0,0,0,0.05);
+    }
+    
+    .features {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 2rem;
+      margin-bottom: 3rem;
+    }
+    
+    .feature-card {
+      background-color: var(--white);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      box-shadow: var(--shadow);
+      text-align: center;
+    }
+    
+    .feature-icon {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+      color: var(--primary);
+    }
+    
+    .feature-title {
+      font-size: 1.25rem;
+      margin-bottom: 0.5rem;
+      color: var(--secondary);
+    }
+    
+    .feature-description {
+      color: var(--text-light);
+      line-height: 1.6;
+    }
+    
+    .instructions {
+      background-color: var(--white);
+      border-radius: var(--radius);
+      padding: 2rem;
+      box-shadow: var(--shadow);
+      margin-bottom: 3rem;
+    }
+    
+    .instructions-title {
+      font-size: 1.5rem;
+      margin-bottom: 1.5rem;
+      color: var(--secondary);
+      text-align: center;
+    }
+    
+    .instructions-list {
+      list-style-position: inside;
+      padding-left: 1rem;
+    }
+    
+    .instructions-list li {
+      margin-bottom: 1rem;
+      line-height: 1.6;
+    }
+    
+    .step-number {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      background-color: var(--primary);
+      color: var(--secondary);
+      border-radius: 50%;
+      font-weight: 600;
+      font-size: 0.9rem;
+      margin-right: 0.5rem;
+    }
+    
+    footer {
+      background-color: var(--white);
+      border-top: 1px solid var(--border);
+      padding: 1.5rem 0;
+      text-align: center;
+      color: var(--text-light);
+      font-size: 0.875rem;
+    }
+    
+    @media (max-width: 768px) {
+      .features {
+        grid-template-columns: 1fr;
+      }
+      
+      .hero-title {
+        font-size: 1.75rem;
+      }
+      
+      .hero-description {
+        font-size: 1rem;
+      }
+      
+      .cta-button, .secondary-button {
+        display: block;
+        width: 100%;
+        margin: 0 0 1rem 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <h1 class="logo">MÓVEIS BONAFÉ</h1>
+      <p class="tagline">Gerador de Lista de Entrega</p>
+    </div>
+  </header>
+  
+  <main>
+    <div class="container">
+      <section class="hero">
+        <h2 class="hero-title">Gere Listas de Entrega com Facilidade</h2>
+        <p class="hero-description">
+          Transforme seus dados do Excel em documentos formatados para listas de entrega em segundos. 
+          Nossa ferramenta processa automaticamente suas planilhas e gera documentos prontos para impressão 
+          com a formatação padrão da Móveis Bonafé.
+        </p>
+        <a href="app.html" class="cta-button">Acessar Aplicativo</a>
+        <a href="modelo.html" class="secondary-button">Ver Modelo de Documento</a>
+      </section>
+      
+      <section class="features">
+        <div class="feature-card">
+          <div class="feature-icon">📊</div>
+          <h3 class="feature-title">Processamento Rápido</h3>
+          <p class="feature-description">
+            Carregue seu arquivo Excel e transforme-o em um documento formatado em apenas alguns segundos, sem necessidade de edição manual.
+          </p>
+        </div>
+        
+        <div class="feature-card">
+          <div class="feature-icon">📄</div>
+          <h3 class="feature-title">Formatação Precisa</h3>
+          <p class="feature-description">
+            Documento gerado com formatação exata, incluindo cores para células TB e IM, alinhamento correto e layout otimizado.
+          </p>
+        </div>
+        
+        <div class="feature-card">
+          <div class="feature-icon">💻</div>
+          <h3 class="feature-title">Funciona Offline</h3>
+          <p class="feature-description">
+            Após carregar a página, o aplicativo funciona completamente offline. Seus dados nunca saem do seu computador.
+          </p>
+        </div>
+      </section>
+      
+      <section class="instructions">
+        <h3 class="instructions-title">Como Utilizar</h3>
+        <ol class="instructions-list">
+          <li><span class="step-number">1</span> Prepare seu arquivo Excel com as abas "LISTA POR PEDIDO" e "CARGA" seguindo o formato padrão</li>
+          <li><span class="step-number">2</span> Clique no botão "Acessar Aplicativo" acima</li>
+          <li><span class="step-number">3</span> Selecione ou arraste seu arquivo Excel para a área de upload</li>
+          <li><span class="step-number">4</span> Aguarde o processamento automático do arquivo</li>
+          <li><span class="step-number">5</span> Visualize a prévia do documento formatado</li>
+          <li><span class="step-number">6</span> Clique em "Gerar Documento HTML" para criar o documento final</li>
+          <li><span class="step-number">7</span> Imprima diretamente ou salve como PDF para compartilhar</li>
+        </ol>
+      </section>
+    </div>
+  </main>
+  
+  <footer>
+    <div class="container">
+      &copy; 2025 Móveis Bonafé. Todos os direitos reservados.
+    </div>
+  </footer>
+</body>
+</html>

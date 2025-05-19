@@ -1,0 +1,1267 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Móveis Bonafé - Gerador de Lista de Entrega</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+  <style>
+    :root {
+      --primary: #ffc107;
+      --primary-dark: #ffb300;
+      --secondary: #000;
+      --text: #333;
+      --text-light: #666;
+      --bg: #f9f9f9;
+      --white: #fff;
+      --border: #e0e0e0;
+      --shadow: 0 4px 6px rgba(0,0,0,0.05);
+      --radius: 8px;
+      --header-height: 60px;
+    }
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      font-family: 'Poppins', sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    header {
+      padding: 1.5rem 0;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      border-bottom: 1px solid var(--border);
+      background-color: var(--white);
+    }
+    
+    .container {
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 1rem;
+    }
+    
+    .header-content {
+      text-align: center;
+    }
+    
+    .logo {
+      font-weight: bold;
+      text-transform: uppercase;
+      background: linear-gradient(to right, var(--secondary), var(--primary));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      font-size: 2rem;
+      letter-spacing: -0.5px;
+    }
+    
+    .divider {
+      height: 2px;
+      width: 100px;
+      background-color: var(--primary);
+      margin: 0.5rem auto 0.25rem;
+    }
+    
+    .tagline {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      font-weight: 500;
+      color: var(--secondary);
+    }
+    
+    main {
+      flex: 1;
+      padding: 2rem 0;
+    }
+    
+    .app-container {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 2rem;
+    }
+    
+    @media (min-width: 1024px) {
+      .app-container {
+        grid-template-columns: 350px 1fr;
+      }
+    }
+    
+    .card {
+      background: var(--white);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 1.5rem;
+      height: fit-content;
+    }
+    
+    .steps-container {
+      margin-bottom: 2rem;
+    }
+    
+    .steps {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 1.5rem;
+      position: relative;
+    }
+    
+    .steps::before {
+      content: "";
+      position: absolute;
+      top: 14px;
+      left: 35px;
+      right: 35px;
+      height: 2px;
+      background-color: var(--border);
+      z-index: 0;
+    }
+    
+    .step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      z-index: 1;
+    }
+    
+    .step-number {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background-color: var(--white);
+      border: 2px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 0.875rem;
+      margin-bottom: 0.5rem;
+      color: var(--text-light);
+      transition: all 0.3s ease;
+    }
+    
+    .step-label {
+      font-size: 0.75rem;
+      color: var(--text-light);
+      text-align: center;
+      transition: all 0.3s ease;
+    }
+    
+    .step.active .step-number {
+      background-color: var(--primary);
+      border-color: var(--primary);
+      color: var(--secondary);
+    }
+    
+    .step.active .step-label {
+      color: var(--text);
+      font-weight: 500;
+    }
+    
+    .step.completed .step-number {
+      background-color: var(--primary);
+      border-color: var(--primary);
+      color: var(--secondary);
+    }
+    
+    .drop-area {
+      border: 2px dashed var(--border);
+      border-radius: var(--radius);
+      padding: 2rem;
+      text-align: center;
+      margin-bottom: 1.5rem;
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+    
+    .drop-area:hover, .drop-area.drag-over {
+      border-color: var(--primary);
+      background-color: rgba(255, 193, 7, 0.05);
+    }
+    
+    .drop-icon {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+      color: var(--text-light);
+    }
+    
+    .drop-text {
+      margin-bottom: 1rem;
+      font-size: 0.875rem;
+      color: var(--text);
+    }
+    
+    .file-input {
+      display: none;
+    }
+    
+    .btn {
+      display: inline-block;
+      background-color: var(--primary);
+      color: var(--secondary);
+      padding: 0.75rem 1.5rem;
+      border-radius: 4px;
+      text-decoration: none;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      border: none;
+      cursor: pointer;
+      font-size: 0.875rem;
+    }
+    
+    .btn:hover {
+      background-color: var(--primary-dark);
+      transform: translateY(-2px);
+    }
+    
+    .btn-secondary {
+      background-color: transparent;
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+    
+    .btn-secondary:hover {
+      background-color: rgba(0,0,0,0.05);
+    }
+    
+    .progress-container {
+      margin-top: 1.5rem;
+    }
+    
+    .progress-bar {
+      height: 10px;
+      background-color: var(--border);
+      border-radius: 5px;
+      overflow: hidden;
+      margin-bottom: 0.5rem;
+    }
+    
+    .progress-fill {
+      height: 100%;
+      background-color: var(--primary);
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+    
+    .progress-text {
+      font-size: 0.75rem;
+      color: var(--text-light);
+      text-align: right;
+    }
+    
+    .file-info {
+      display: none;
+      margin-top: 1.5rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border);
+    }
+    
+    .file-info.visible {
+      display: block;
+    }
+    
+    .file-info-item {
+      display: flex;
+      align-items: center;
+      margin-bottom: 0.75rem;
+    }
+    
+    .file-info-label {
+      font-size: 0.75rem;
+      color: var(--text-light);
+      width: 100px;
+    }
+    
+    .file-info-value {
+      font-size: 0.875rem;
+      font-weight: 500;
+    }
+    
+    .preview-container {
+      overflow: auto;
+      max-height: 500px;
+    }
+    
+    .preview-header {
+      margin-bottom: 1rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .preview-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+    }
+    
+    .preview-subtitle {
+      font-size: 0.875rem;
+      color: var(--text-light);
+      margin-top: 0.25rem;
+    }
+    
+    .table-container {
+      width: 100%;
+      overflow-x: auto;
+    }
+    
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.875rem;
+    }
+    
+    th, td {
+      padding: 0.75rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    th {
+      font-weight: 600;
+      background-color: rgba(0,0,0,0.02);
+    }
+    
+    tr:last-child td {
+      border-bottom: none;
+    }
+    
+    .preview-message {
+      text-align: center;
+      padding: 3rem 0;
+      color: var(--text-light);
+    }
+    
+    .preview-message p {
+      margin-bottom: 1rem;
+    }
+    
+    .preview-actions {
+      margin-top: 1.5rem;
+      display: flex;
+      justify-content: flex-end;
+      gap: 1rem;
+    }
+    
+    .preview-actions .btn {
+      min-width: 150px;
+    }
+    
+    .word-preview {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    
+    .word-preview-col {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem;
+      background-color: white;
+    }
+    
+    .word-preview-heading {
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      color: var(--text);
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .word-preview-item {
+      margin-bottom: 0.25rem;
+      font-size: 0.75rem;
+    }
+    
+    .word-preview-value {
+      display: inline-block;
+      min-width: 30px;
+      text-align: right;
+      margin-left: 0.5rem;
+      font-weight: 500;
+    }
+    
+    footer {
+      text-align: center;
+      padding: 1.5rem 0;
+      color: var(--text-light);
+      font-size: 0.75rem;
+      background-color: var(--white);
+      border-top: 1px solid var(--border);
+      margin-top: auto;
+    }
+    
+    @media (max-width: 768px) {
+      .word-preview {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Estilos para documento HTML tabular */
+    .doc-table { 
+      border-collapse: collapse; 
+      width: 100%; 
+      margin-bottom: 20px; 
+    }
+    
+    .doc-table th, .doc-table td { 
+      border: 1px solid black; 
+      padding: 4px; 
+      text-align: center; 
+    }
+    
+    .doc-header { 
+      font-weight: bold; 
+      background-color: #f2f2f2; 
+    }
+    
+    .doc-client-name { 
+      font-weight: bold; 
+      text-align: left; 
+    }
+    
+    .doc-tb-header { 
+      background-color: yellow; 
+    }
+    
+    .doc-im-cell { 
+      background-color: green; 
+      color: white; 
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <div class="header-content">
+        <h1 class="logo">Móveis Bonafé</h1>
+        <div class="divider"></div>
+        <span class="tagline">Lista de Entrega</span>
+      </div>
+    </div>
+  </header>
+  
+  <main>
+    <div class="container">
+      <div class="steps-container">
+        <div class="steps">
+          <div class="step active" id="step1">
+            <div class="step-number">1</div>
+            <div class="step-label">Carregar Arquivo</div>
+          </div>
+          <div class="step" id="step2">
+            <div class="step-number">2</div>
+            <div class="step-label">Processamento</div>
+          </div>
+          <div class="step" id="step3">
+            <div class="step-number">3</div>
+            <div class="step-label">Download do Word</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="app-container">
+        <div class="card">
+          <div id="fileUploadContainer">
+            <h2>Carregar Arquivo Excel</h2>
+            <p style="font-size: 0.875rem; color: var(--text-light); margin: 0.5rem 0 1.5rem;">
+              Selecione ou arraste o arquivo da planilha no formato Excel (.xlsx)
+            </p>
+            
+            <div class="drop-area" id="dropArea">
+              <div class="drop-icon">📄</div>
+              <div class="drop-text">Arraste e solte o arquivo Excel aqui</div>
+              <button class="btn" id="selectFileBtn">Selecionar Arquivo</button>
+              <input type="file" id="fileInput" class="file-input" accept=".xlsx,.xls" />
+            </div>
+            
+            <div class="progress-container" id="progressContainer" style="display: none;">
+              <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+              </div>
+              <div class="progress-text" id="progressText">0%</div>
+            </div>
+            
+            <div class="file-info" id="fileInfo">
+              <div class="file-info-item">
+                <div class="file-info-label">Arquivo:</div>
+                <div class="file-info-value" id="fileName"></div>
+              </div>
+              <div class="file-info-item">
+                <div class="file-info-label">Tamanho:</div>
+                <div class="file-info-value" id="fileSize"></div>
+              </div>
+              <div class="file-info-item">
+                <div class="file-info-label">Status:</div>
+                <div class="file-info-value" id="fileStatus">Pronto para processar</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="card">
+          <div id="previewContainer">
+            <div class="preview-header">
+              <div>
+                <div class="preview-title">Visualização do Documento</div>
+                <div class="preview-subtitle">Carregue um arquivo para visualizar a pré-formatação</div>
+              </div>
+            </div>
+            
+            <div class="preview-message" id="previewMessage">
+              <p>Nenhum arquivo carregado</p>
+              <p>Carregue um arquivo Excel para visualizar a pré-formatação do documento que será gerado</p>
+            </div>
+            
+            <div id="documentPreview" style="display: none;">
+              <!-- Preview content will be generated here -->
+            </div>
+            
+            <div class="preview-actions">
+              <button class="btn btn-secondary" id="resetBtn" disabled>Cancelar</button>
+              <button class="btn" id="generateBtn" disabled>Gerar Documento HTML</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+  
+  <footer>
+    <div class="container">
+      <a href="index.html" style="color: inherit; text-decoration: none;">Voltar à Página Inicial</a> |
+      <a href="modelo.html" style="color: inherit; text-decoration: none;">Ver Modelo de Documento</a> |
+      &copy; 2025 Móveis Bonafé. Todos os direitos reservados.
+    </div>
+  </footer>
+
+  <script>
+    // Type declarations for Excel data
+    /**
+     * @typedef {Object} ProductData
+     * @property {string} name - Product name
+     * @property {(number|null)[]} values - Array of values for each column
+     */
+    
+    /**
+     * @typedef {Object} DataBlock
+     * @property {string} name - Block name
+     * @property {ProductData[]} products - Array of products in this block
+     */
+    
+    /**
+     * @typedef {Object} ExcelData
+     * @property {string} fileName - Name of the processed file
+     * @property {number} fileSize - Size of the file in bytes
+     * @property {DataBlock[]} processedData - Processed data blocks
+     * @property {ProductData[]} [totalProducts] - Products from the CARGA tab for TOTAL section
+     */
+
+    // Formatting utilities
+    function formatFileSize(bytes) {
+      if (bytes === 0) return '0 Bytes';
+      const k = 1024;
+      const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    function truncateText(text, maxLength) {
+      if (!text) return '';
+      return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
+    }
+
+    function formatNumberWithLeadingZeros(value) {
+      if (value === null || value === undefined) return '000';
+      let numValue = typeof value === 'string' ? parseFloat(value) : value;
+      if (isNaN(numValue)) return '000';
+      
+      return numValue.toString().padStart(3, '0');
+    }
+
+    // Excel processing
+    async function processExcelFile(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+          try {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, { type: 'array' });
+            
+            // Check if the required sheets exist
+            const requiredSheets = ['LISTA POR PEDIDO', 'CARGA'];
+            const sheetNames = workbook.SheetNames;
+            
+            for (const sheet of requiredSheets) {
+              if (!sheetNames.includes(sheet)) {
+                reject(new Error(`Planilha necessária '${sheet}' não encontrada no arquivo.`));
+                return;
+              }
+            }
+            
+            // Process the LISTA POR PEDIDO sheet
+            const worksheet = workbook.Sheets['LISTA POR PEDIDO'];
+            const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+            
+            // Process CARGA sheet for TOTAL section
+            const cargaWorksheet = workbook.Sheets['CARGA'];
+            const cargaJsonData = XLSX.utils.sheet_to_json(cargaWorksheet, { header: 1 });
+            
+            const processedData = processData(jsonData);
+            const totalProducts = processTotalData(cargaJsonData);
+            
+            resolve({
+              fileName: file.name,
+              fileSize: file.size,
+              processedData,
+              totalProducts
+            });
+          } catch (error) {
+            reject(error);
+          }
+        };
+        
+        reader.onerror = function() {
+          reject(new Error('Erro ao ler o arquivo.'));
+        };
+        
+        reader.readAsArrayBuffer(file);
+      });
+    }
+
+    function processData(jsonData) {
+      const blocks = [];
+      let currentBlock = null;
+      let columnIndices = null;
+      
+      // Find the header row to determine column indices
+      for (let i = 0; i < jsonData.length; i++) {
+        const row = jsonData[i];
+        if (row && Array.isArray(row) && row.some(cell => cell === 'CLIENTE')) {
+          // The indices of the columns CE, MG, TB, IM
+          columnIndices = [
+            row.indexOf('CE'),
+            row.indexOf('MG'),
+            row.indexOf('TB'),
+            row.indexOf('IM')
+          ];
+          break;
+        }
+      }
+      
+      if (!columnIndices || columnIndices.some(idx => idx === -1)) {
+        throw new Error('Cabeçalho com colunas CE, MG, TB, IM não encontrado.');
+      }
+      
+      // Process the data rows
+      for (let i = 0; i < jsonData.length; i++) {
+        const row = jsonData[i];
+        if (!row || !Array.isArray(row) || row.length === 0) continue;
+        
+        // Check if this is a CLIENTE row (start of a new block)
+        if (row[0] === 'CLIENTE' && row.length > 1 && row[1]) {
+          if (currentBlock) {
+            // Sort products alphabetically
+            currentBlock.products.sort((a, b) => a.name.localeCompare(b.name));
+            blocks.push(currentBlock);
+          }
+          
+          currentBlock = {
+            name: row[1].toString(),
+            products: []
+          };
+        }
+        // If we're inside a block and this is a product row
+        else if (currentBlock && row[0] && row[0] !== 'CLIENTE' && row[0] !== 'ITEM') {
+          const productName = row[0].toString();
+          const values = columnIndices.map(idx => {
+            if (idx >= 0 && idx < row.length) {
+              const val = row[idx];
+              return (val !== undefined && val !== null && val !== '') ? Number(val) : null;
+            }
+            return null;
+          });
+          
+          currentBlock.products.push({
+            name: productName,
+            values: values
+          });
+        }
+      }
+      
+      // Add the last block if it exists
+      if (currentBlock) {
+        // Sort products alphabetically
+        currentBlock.products.sort((a, b) => a.name.localeCompare(b.name));
+        blocks.push(currentBlock);
+      }
+      
+      return blocks;
+    }
+
+    function processTotalData(jsonData) {
+      const totalProducts = [];
+      let columnIndices = null;
+      let dataStarted = false;
+      
+      // Find the header row to determine column indices
+      for (let i = 0; i < jsonData.length; i++) {
+        const row = jsonData[i];
+        if (row && Array.isArray(row) && row.some(cell => cell === 'PRODUTO')) {
+          // The indices of the columns PRODUTO, CE, MG, TB, IM
+          columnIndices = [
+            row.indexOf('PRODUTO'),
+            row.indexOf('CE'),
+            row.indexOf('MG'),
+            row.indexOf('TB'),
+            row.indexOf('IM')
+          ];
+          dataStarted = true;
+          continue;
+        }
+        
+        if (dataStarted && columnIndices && row && row.length > 0) {
+          const prodIdx = columnIndices[0];
+          if (prodIdx >= 0 && prodIdx < row.length && row[prodIdx]) {
+            const productName = row[prodIdx].toString();
+            const values = columnIndices.slice(1).map(idx => {
+              if (idx >= 0 && idx < row.length) {
+                const val = row[idx];
+                return (val !== undefined && val !== null && val !== '') ? Number(val) : null;
+              }
+              return null;
+            });
+            
+            totalProducts.push({
+              name: productName,
+              values: values
+            });
+          }
+        }
+      }
+      
+      return totalProducts;
+    }
+
+    // Generate HTML document
+    function generateHtmlDocument(excelData) {
+      const { processedData, totalProducts } = excelData;
+      
+      // Create HTML content
+      let htmlContent = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Móveis Bonafé - Lista de Entrega</title>
+  <style>
+    body { 
+      font-family: Arial, sans-serif; 
+      margin: 20px;
+    }
+    table { 
+      border-collapse: collapse; 
+      width: 100%; 
+      margin-bottom: 20px; 
+    }
+    th, td { 
+      border: 1px solid black; 
+      padding: 4px; 
+      text-align: center; 
+    }
+    .header { 
+      font-weight: bold; 
+      background-color: #f2f2f2; 
+    }
+    .client-name { 
+      font-weight: bold; 
+      text-align: left; 
+    }
+    .tb-header { 
+      background-color: yellow; 
+    }
+    .im-cell { 
+      background-color: green; 
+      color: white; 
+    }
+    h1 { 
+      text-align: center; 
+      color: #0070c0; 
+    }
+    .no-print {
+      margin-top: 40px;
+      padding: 15px;
+      background-color: #f0f0f0;
+      border-radius: 5px;
+    }
+    .btn {
+      display: inline-block;
+      background-color: #0070c0;
+      color: white;
+      padding: 8px 15px;
+      text-decoration: none;
+      border-radius: 4px;
+      margin-top: 10px;
+    }
+    
+    @media print {
+      .no-print {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>MÓVEIS BONAFÉ - LISTA DE ENTREGA</h1>
+`;
+      
+      // Process data into pairs of clients
+      for (let i = 0; i < processedData.length; i += 2) {
+        const leftBlock = processedData[i];
+        const rightBlock = i + 1 < processedData.length ? processedData[i + 1] : null;
+        
+        // Start table
+        htmlContent += `
+  <table>
+    <tr class="header">
+      <th class="client-name">${leftBlock.name}</th>
+      <th>CE</th>
+      <th>MG</th>
+      <th class="tb-header">TB</th>
+      <th>IM</th>`;
+        
+        // Add right client if exists
+        if (rightBlock) {
+          htmlContent += `
+      <th class="client-name">${rightBlock.name}</th>
+      <th>CE</th>
+      <th>MG</th>
+      <th class="tb-header">TB</th>
+      <th>IM</th>`;
+        } else {
+          htmlContent += `
+      <th class="client-name"></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>`;
+        }
+        
+        htmlContent += `
+    </tr>`;
+        
+        // Calculate max rows
+        const leftProducts = leftBlock.products || [];
+        const rightProducts = rightBlock ? (rightBlock.products || []) : [];
+        const maxRows = Math.max(leftProducts.length, rightProducts.length);
+        
+        // Add product rows
+        for (let j = 0; j < maxRows; j++) {
+          const leftProduct = j < leftProducts.length ? leftProducts[j] : null;
+          const rightProduct = j < rightProducts.length ? rightProducts[j] : null;
+          
+          htmlContent += `
+    <tr>`;
+          
+          // Left product cells
+          if (leftProduct) {
+            htmlContent += `
+      <td>${leftProduct.name}</td>
+      <td>${leftProduct.values[0] ? formatNumberWithLeadingZeros(leftProduct.values[0]) : ''}</td>
+      <td>${leftProduct.values[1] ? formatNumberWithLeadingZeros(leftProduct.values[1]) : ''}</td>
+      <td>${leftProduct.values[2] ? formatNumberWithLeadingZeros(leftProduct.values[2]) : ''}</td>
+      <td ${leftProduct.values[3] ? 'class="im-cell"' : ''}>${leftProduct.values[3] ? formatNumberWithLeadingZeros(leftProduct.values[3]) : ''}</td>`;
+          } else {
+            htmlContent += `
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>`;
+          }
+          
+          // Right product cells
+          if (rightProduct) {
+            htmlContent += `
+      <td>${rightProduct.name}</td>
+      <td>${rightProduct.values[0] ? formatNumberWithLeadingZeros(rightProduct.values[0]) : ''}</td>
+      <td>${rightProduct.values[1] ? formatNumberWithLeadingZeros(rightProduct.values[1]) : ''}</td>
+      <td>${rightProduct.values[2] ? formatNumberWithLeadingZeros(rightProduct.values[2]) : ''}</td>
+      <td ${rightProduct.values[3] ? 'class="im-cell"' : ''}>${rightProduct.values[3] ? formatNumberWithLeadingZeros(rightProduct.values[3]) : ''}</td>`;
+          } else {
+            htmlContent += `
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>`;
+          }
+          
+          htmlContent += `
+    </tr>`;
+        }
+        
+        // End table
+        htmlContent += `
+  </table>`;
+      }
+      
+      // Add TOTAL section if available
+      if (totalProducts && totalProducts.length > 0) {
+        htmlContent += `
+  <table>
+    <tr class="header">
+      <th class="client-name">TOTAL</th>
+      <th>CE</th>
+      <th>MG</th>
+      <th class="tb-header">TB</th>
+      <th>IM</th>
+      <th class="client-name"></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>`;
+        
+        for (const product of totalProducts) {
+          htmlContent += `
+    <tr>
+      <td>${product.name}</td>
+      <td>${product.values[0] ? formatNumberWithLeadingZeros(product.values[0]) : ''}</td>
+      <td>${product.values[1] ? formatNumberWithLeadingZeros(product.values[1]) : ''}</td>
+      <td>${product.values[2] ? formatNumberWithLeadingZeros(product.values[2]) : ''}</td>
+      <td ${product.values[3] ? 'class="im-cell"' : ''}>${product.values[3] ? formatNumberWithLeadingZeros(product.values[3]) : ''}</td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+    </tr>`;
+        }
+        
+        htmlContent += `
+  </table>`;
+      }
+      
+      // Add printing instructions
+      htmlContent += `
+  <div class="no-print">
+    <h2>Instruções para impressão</h2>
+    <p>Para salvar este documento como PDF ou imprimi-lo:</p>
+    <ol>
+      <li>Pressione Ctrl+P (ou Cmd+P no Mac)</li>
+      <li>Selecione "Salvar como PDF" na opção de impressora</li>
+      <li>Clique em "Salvar" para gerar o arquivo PDF</li>
+    </ol>
+    <p>A impressão vai ocultar automaticamente estas instruções.</p>
+    <a href="javascript:window.print()" class="btn">Imprimir/Salvar como PDF</a>
+    <a href="javascript:window.close()" class="btn" style="background-color: #666; margin-left: 10px;">Fechar esta janela</a>
+  </div>
+</body>
+</html>`;
+      
+      // Save as HTML file
+      const blob = new Blob([htmlContent], { type: 'text/html' });
+      saveAs(blob, `Lista_Entrega_${new Date().toISOString().slice(0, 10)}.html`);
+    }
+
+    // Generate preview of document
+    function generatePreview(data) {
+      if (!data) return;
+      
+      const documentPreview = document.getElementById('documentPreview');
+      const previewMessage = document.getElementById('previewMessage');
+      
+      previewMessage.style.display = 'none';
+      documentPreview.style.display = 'block';
+      
+      // Create a simple preview of the first few clients
+      let previewHtml = '<h3>Prévia do documento que será gerado:</h3>';
+      
+      const previewCount = Math.min(2, data.processedData.length);
+      const blocks = data.processedData.slice(0, previewCount);
+      
+      // Add sample table
+      previewHtml += `
+      <table class="doc-table">
+        <tr class="doc-header">
+          <th class="doc-client-name">${blocks[0].name}</th>
+          <th>CE</th>
+          <th>MG</th>
+          <th class="doc-tb-header">TB</th>
+          <th>IM</th>`;
+      
+      if (blocks.length > 1) {
+        previewHtml += `
+          <th class="doc-client-name">${blocks[1].name}</th>
+          <th>CE</th>
+          <th>MG</th>
+          <th class="doc-tb-header">TB</th>
+          <th>IM</th>`;
+      } else {
+        previewHtml += `
+          <th class="doc-client-name"></th>
+          <th></th>
+          <th></th>
+          <th></th>
+          <th></th>`;
+      }
+      
+      previewHtml += `
+        </tr>`;
+      
+      // Calculate max rows for preview
+      const maxPreviewRows = 5;
+      const block1Products = blocks[0].products.slice(0, maxPreviewRows);
+      const block2Products = blocks.length > 1 ? blocks[1].products.slice(0, maxPreviewRows) : [];
+      const maxRows = Math.max(block1Products.length, block2Products.length);
+      
+      // Add product rows
+      for (let i = 0; i < maxRows; i++) {
+        const leftProduct = i < block1Products.length ? block1Products[i] : null;
+        const rightProduct = i < block2Products.length ? block2Products[i] : null;
+        
+        previewHtml += `
+        <tr>`;
+        
+        // Left product
+        if (leftProduct) {
+          previewHtml += `
+          <td>${leftProduct.name}</td>
+          <td>${leftProduct.values[0] ? formatNumberWithLeadingZeros(leftProduct.values[0]) : ''}</td>
+          <td>${leftProduct.values[1] ? formatNumberWithLeadingZeros(leftProduct.values[1]) : ''}</td>
+          <td>${leftProduct.values[2] ? formatNumberWithLeadingZeros(leftProduct.values[2]) : ''}</td>
+          <td ${leftProduct.values[3] ? 'class="doc-im-cell"' : ''}>${leftProduct.values[3] ? formatNumberWithLeadingZeros(leftProduct.values[3]) : ''}</td>`;
+        } else {
+          previewHtml += `
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>`;
+        }
+        
+        // Right product
+        if (rightProduct) {
+          previewHtml += `
+          <td>${rightProduct.name}</td>
+          <td>${rightProduct.values[0] ? formatNumberWithLeadingZeros(rightProduct.values[0]) : ''}</td>
+          <td>${rightProduct.values[1] ? formatNumberWithLeadingZeros(rightProduct.values[1]) : ''}</td>
+          <td>${rightProduct.values[2] ? formatNumberWithLeadingZeros(rightProduct.values[2]) : ''}</td>
+          <td ${rightProduct.values[3] ? 'class="doc-im-cell"' : ''}>${rightProduct.values[3] ? formatNumberWithLeadingZeros(rightProduct.values[3]) : ''}</td>`;
+        } else {
+          previewHtml += `
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>`;
+        }
+        
+        previewHtml += `
+        </tr>`;
+      }
+      
+      previewHtml += `
+      </table>
+      <p style="text-align: center; font-style: italic; color: #666;">Esta é apenas uma prévia. O documento completo incluirá todos os clientes e produtos.</p>`;
+      
+      documentPreview.innerHTML = previewHtml;
+    }
+
+    // Main application code
+    document.addEventListener('DOMContentLoaded', function() {
+      // DOM elements
+      const dropArea = document.getElementById('dropArea');
+      const fileInput = document.getElementById('fileInput');
+      const selectFileBtn = document.getElementById('selectFileBtn');
+      const progressContainer = document.getElementById('progressContainer');
+      const progressFill = document.getElementById('progressFill');
+      const progressText = document.getElementById('progressText');
+      const fileInfo = document.getElementById('fileInfo');
+      const fileName = document.getElementById('fileName');
+      const fileSize = document.getElementById('fileSize');
+      const fileStatus = document.getElementById('fileStatus');
+      const resetBtn = document.getElementById('resetBtn');
+      const generateBtn = document.getElementById('generateBtn');
+      const previewMessage = document.getElementById('previewMessage');
+      const documentPreview = document.getElementById('documentPreview');
+      
+      // Step indicators
+      const step1 = document.getElementById('step1');
+      const step2 = document.getElementById('step2');
+      const step3 = document.getElementById('step3');
+      
+      // State
+      let currentExcelData = null;
+      let processingComplete = false;
+      
+      // File selection button
+      selectFileBtn.addEventListener('click', function() {
+        fileInput.click();
+      });
+      
+      // File input change
+      fileInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+          handleFile(file);
+        }
+      });
+      
+      // Drag and drop handlers
+      ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dropArea.addEventListener(eventName, preventDefaults, false);
+      });
+      
+      function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+      
+      ['dragenter', 'dragover'].forEach(eventName => {
+        dropArea.addEventListener(eventName, function() {
+          dropArea.classList.add('drag-over');
+        }, false);
+      });
+      
+      ['dragleave', 'drop'].forEach(eventName => {
+        dropArea.addEventListener(eventName, function() {
+          dropArea.classList.remove('drag-over');
+        }, false);
+      });
+      
+      dropArea.addEventListener('drop', function(e) {
+        const file = e.dataTransfer.files[0];
+        if (file) {
+          handleFile(file);
+        }
+      }, false);
+      
+      // Reset button
+      resetBtn.addEventListener('click', function() {
+        resetApp();
+      });
+      
+      // Generate button
+      generateBtn.addEventListener('click', function() {
+        if (currentExcelData) {
+          generateHtmlDocument(currentExcelData);
+        }
+      });
+      
+      // Handle file upload and processing
+      function handleFile(file) {
+        if (!file) return;
+        
+        const fileExtension = file.name.split('.').pop().toLowerCase();
+        if (fileExtension !== 'xlsx' && fileExtension !== 'xls') {
+          alert('Por favor, selecione um arquivo Excel válido (.xlsx ou .xls)');
+          return;
+        }
+        
+        // Reset the app state
+        resetApp();
+        
+        // Update file info
+        fileInfo.classList.add('visible');
+        fileName.textContent = truncateText(file.name, 25);
+        fileSize.textContent = formatFileSize(file.size);
+        fileStatus.textContent = 'Processando...';
+        
+        // Show progress
+        progressContainer.style.display = 'block';
+        updateProgress(10);
+        
+        // Update steps
+        step1.classList.remove('active');
+        step1.classList.add('completed');
+        step2.classList.add('active');
+        
+        // Start processing
+        processExcelFile(file)
+          .then(data => {
+            updateProgress(90);
+            
+            // Update app state
+            currentExcelData = data;
+            processingComplete = true;
+            
+            // Update UI
+            fileStatus.textContent = 'Processado com sucesso';
+            updateProgress(100);
+            
+            // Enable buttons
+            resetBtn.disabled = false;
+            generateBtn.disabled = false;
+            
+            // Update steps
+            step2.classList.remove('active');
+            step2.classList.add('completed');
+            step3.classList.add('active');
+            
+            // Generate preview
+            generatePreview(data);
+          })
+          .catch(error => {
+            console.error('Error processing file:', error);
+            fileStatus.textContent = 'Erro ao processar: ' + error.message;
+            updateProgress(0);
+          });
+      }
+      
+      // Update progress bar
+      function updateProgress(percent) {
+        progressFill.style.width = percent + '%';
+        progressText.textContent = percent + '%';
+      }
+      
+      // Reset the application
+      function resetApp() {
+        // Reset state
+        currentExcelData = null;
+        processingComplete = false;
+        
+        // Reset UI
+        fileInput.value = '';
+        fileInfo.classList.remove('visible');
+        progressContainer.style.display = 'none';
+        updateProgress(0);
+        previewMessage.style.display = 'block';
+        documentPreview.style.display = 'none';
+        documentPreview.innerHTML = '';
+        
+        // Reset buttons
+        resetBtn.disabled = true;
+        generateBtn.disabled = true;
+        
+        // Reset steps
+        step1.classList.add('active');
+        step1.classList.remove('completed');
+        step2.classList.remove('active');
+        step2.classList.remove('completed');
+        step3.classList.remove('active');
+        step3.classList.remove('completed');
+      }
+    });
+  </script>
+</body>
+</html>
