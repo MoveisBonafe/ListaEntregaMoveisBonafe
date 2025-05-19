@@ -677,19 +677,27 @@
         }
         // Se estamos dentro de um bloco e esta é uma linha de produto
         else if (currentBlock && row[0] && row[0] !== 'CLIENTE' && row[0] !== 'ITEM') {
-          const productName = row[0].toString();
-          const values = columnIndices.map(idx => {
-            if (idx >= 0 && idx < row.length) {
-              const val = row[idx];
-              return (val !== undefined && val !== null && val !== '') ? Number(val) : null;
-            }
-            return null;
-          });
+          // Verificar se este é um nome de cliente duplicado em vez de produto
+          const isClientName = typeof row[0] === 'string' && 
+                              (row[0].toUpperCase() === row[0] || 
+                               row[0].includes('CLIENTE') || 
+                               blocks.some(b => b.name === row[0]));
           
-          currentBlock.products.push({
-            name: productName,
-            values: values
-          });
+          if (!isClientName) {
+            const productName = row[0].toString();
+            const values = columnIndices.map(idx => {
+              if (idx >= 0 && idx < row.length) {
+                const val = row[idx];
+                return (val !== undefined && val !== null && val !== '') ? Number(val) : null;
+              }
+              return null;
+            });
+            
+            currentBlock.products.push({
+              name: productName,
+              values: values
+            });
+          }
         }
       }
       
