@@ -584,93 +584,236 @@
         return;
       }
       
-      // Informar o usuário sobre as limitações do GitHub Pages e oferecer alternativa
-      const redirectConfirm = confirm('Esta é uma versão demonstrativa no GitHub Pages com recursos limitados. Para usar a versão completa com geração de documentos Word, por favor acesse a aplicação original no Replit onde você a desenvolveu.\n\nDeseja ver um exemplo do formato do documento?');
+      // Mostrar mensagem de processamento
+      const loadingDiv = document.createElement('div');
+      loadingDiv.style.position = 'fixed';
+      loadingDiv.style.top = '0';
+      loadingDiv.style.left = '0';
+      loadingDiv.style.width = '100%';
+      loadingDiv.style.height = '100%';
+      loadingDiv.style.backgroundColor = 'rgba(0,0,0,0.5)';
+      loadingDiv.style.display = 'flex';
+      loadingDiv.style.alignItems = 'center';
+      loadingDiv.style.justifyContent = 'center';
+      loadingDiv.style.zIndex = '1000';
       
-      if (redirectConfirm) {
-        // Mostrar um exemplo de como seria o documento
-        const exampleDiv = document.createElement('div');
-        exampleDiv.style.position = 'fixed';
-        exampleDiv.style.top = '50%';
-        exampleDiv.style.left = '50%';
-        exampleDiv.style.transform = 'translate(-50%, -50%)';
-        exampleDiv.style.backgroundColor = 'white';
-        exampleDiv.style.padding = '20px';
-        exampleDiv.style.borderRadius = '8px';
-        exampleDiv.style.boxShadow = '0 0 20px rgba(0,0,0,0.2)';
-        exampleDiv.style.zIndex = '1000';
-        exampleDiv.style.maxWidth = '80%';
-        exampleDiv.style.maxHeight = '80vh';
-        exampleDiv.style.overflow = 'auto';
-        
-        exampleDiv.innerHTML = `
-          <h2 style="margin-bottom:15px;color:#333;border-bottom:1px solid #eee;padding-bottom:10px;">Prévia do Documento Word</h2>
-          <div style="display:flex;gap:20px;font-size:12px;line-height:1.5;">
-            <div style="flex:1;border:1px solid #ccc;padding:10px;background:#f9f9f9;border-radius:4px;">
-              <h3 style="margin-bottom:8px;font-size:14px;">CLIENTE A</h3>
-              <table style="width:100%;border-collapse:collapse;font-size:11px;">
-                <tr>
-                  <th style="border:1px solid #ddd;padding:4px;text-align:left;background:#f5f5f5;">PRODUTO</th>
-                  <th style="border:1px solid #ddd;padding:4px;text-align:center;background:#f5f5f5;">CE</th>
-                  <th style="border:1px solid #ddd;padding:4px;text-align:center;background:#f5f5f5;">MG</th>
-                  <th style="border:1px solid #ddd;padding:4px;text-align:center;background:#f5f5f5;background-color:#fff2cc;font-weight:bold;">TB</th>
-                  <th style="border:1px solid #ddd;padding:4px;text-align:center;background:#f5f5f5;background-color:#d9ead3;font-weight:bold;">IM</th>
-                </tr>
-                <tr>
-                  <td style="border:1px solid #ddd;padding:4px;">Cadeira 3021</td>
-                  <td style="border:1px solid #ddd;padding:4px;text-align:center;">10</td>
-                  <td style="border:1px solid #ddd;padding:4px;text-align:center;">5</td>
-                  <td style="border:1px solid #ddd;padding:4px;text-align:center;background-color:#fff2cc;">15</td>
-                  <td style="border:1px solid #ddd;padding:4px;text-align:center;background-color:#d9ead3;">2</td>
-                </tr>
-                <tr>
-                  <td style="border:1px solid #ddd;padding:4px;">Mesa 1548</td>
-                  <td style="border:1px solid #ddd;padding:4px;text-align:center;">3</td>
-                  <td style="border:1px solid #ddd;padding:4px;text-align:center;">2</td>
-                  <td style="border:1px solid #ddd;padding:4px;text-align:center;background-color:#fff2cc;">5</td>
-                  <td style="border:1px solid #ddd;padding:4px;text-align:center;background-color:#d9ead3;">1</td>
-                </tr>
-              </table>
-            </div>
-            <div style="flex:1;border:1px solid #ccc;padding:10px;background:#f9f9f9;border-radius:4px;">
-              <h3 style="margin-bottom:8px;font-size:14px;">CLIENTE B</h3>
-              <table style="width:100%;border-collapse:collapse;font-size:11px;">
-                <tr>
-                  <th style="border:1px solid #ddd;padding:4px;text-align:left;background:#f5f5f5;">PRODUTO</th>
-                  <th style="border:1px solid #ddd;padding:4px;text-align:center;background:#f5f5f5;">CE</th>
-                  <th style="border:1px solid #ddd;padding:4px;text-align:center;background:#f5f5f5;">MG</th>
-                  <th style="border:1px solid #ddd;padding:4px;text-align:center;background:#f5f5f5;background-color:#fff2cc;font-weight:bold;">TB</th>
-                  <th style="border:1px solid #ddd;padding:4px;text-align:center;background:#f5f5f5;background-color:#d9ead3;font-weight:bold;">IM</th>
-                </tr>
-                <tr>
-                  <td style="border:1px solid #ddd;padding:4px;">Armário 4520</td>
-                  <td style="border:1px solid #ddd;padding:4px;text-align:center;">8</td>
-                  <td style="border:1px solid #ddd;padding:4px;text-align:center;">4</td>
-                  <td style="border:1px solid #ddd;padding:4px;text-align:center;background-color:#fff2cc;">12</td>
-                  <td style="border:1px solid #ddd;padding:4px;text-align:center;background-color:#d9ead3;">3</td>
-                </tr>
-                <tr>
-                  <td style="border:1px solid #ddd;padding:4px;">Estante 2035</td>
-                  <td style="border:1px solid #ddd;padding:4px;text-align:center;">5</td>
-                  <td style="border:1px solid #ddd;padding:4px;text-align:center;">2</td>
-                  <td style="border:1px solid #ddd;padding:4px;text-align:center;background-color:#fff2cc;">7</td>
-                  <td style="border:1px solid #ddd;padding:4px;text-align:center;background-color:#d9ead3;">1</td>
-                </tr>
-              </table>
-            </div>
-          </div>
-          <div style="margin-top:20px;text-align:center;">
-            <button id="close-preview" style="background-color:#ffc107;color:#000;border:none;padding:8px 16px;border-radius:4px;font-weight:600;cursor:pointer;">Fechar</button>
-          </div>
-        `;
-        
-        document.body.appendChild(exampleDiv);
-        
-        document.getElementById('close-preview').addEventListener('click', () => {
-          document.body.removeChild(exampleDiv);
-        });
-      }
+      loadingDiv.innerHTML = `
+        <div style="background-color:white;padding:20px;border-radius:8px;text-align:center;">
+          <div style="margin-bottom:15px;font-size:18px;font-weight:600;">Gerando documento...</div>
+          <div style="width:50px;height:50px;border:5px solid #f3f3f3;border-top:5px solid #ffc107;border-radius:50%;margin:0 auto;animation:spin 1s linear infinite;"></div>
+        </div>
+      `;
+      
+      document.body.appendChild(loadingDiv);
+      document.body.style.overflow = 'hidden';
+      
+      // Adicionar estilo para animação de loading
+      const style = document.createElement('style');
+      style.textContent = `
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+      `;
+      document.head.appendChild(style);
+
+      // Tentar gerar o documento usando docx.js
+      setTimeout(() => {
+        try {
+          generateWordDocument(excelData);
+          document.body.removeChild(loadingDiv);
+          document.body.style.overflow = '';
+        } catch (error) {
+          console.error('Erro ao gerar documento:', error);
+          document.body.removeChild(loadingDiv);
+          document.body.style.overflow = '';
+          alert('Ocorreu um erro ao gerar o documento. Por favor, tente novamente.');
+        }
+      }, 1000);
     });
+    
+    // Função para gerar documento Word usando docx.js
+    function generateWordDocument(data) {
+      // Criar documento
+      const { Document, Packer, Paragraph, Table, TableCell, TableRow, BorderStyle, TextRun, AlignmentType, HeadingLevel } = docx;
+      
+      // Preparar as tabelas para o documento
+      const tables = [];
+      
+      // Número máximo de linhas por página
+      const maxLinesPerPage = 40;
+      
+      // Contador de linhas atual
+      let currentLineCount = 0;
+      
+      // Para cada bloco de cliente
+      for (let i = 0; i < data.processedData.length; i++) {
+        const block = data.processedData[i];
+        
+        // Ordenar produtos alfabeticamente
+        block.products.sort((a, b) => a.name.localeCompare(b.name));
+        
+        // Criar linhas da tabela
+        const rows = [
+          new TableRow({
+            children: [
+              new TableCell({
+                children: [new Paragraph({
+                  text: block.name,
+                  heading: HeadingLevel.HEADING_3,
+                  bold: true
+                })],
+                columnSpan: 5
+              })
+            ]
+          }),
+          new TableRow({
+            children: [
+              new TableCell({
+                children: [new Paragraph({
+                  text: "PRODUTO",
+                  bold: true
+                })],
+                width: {
+                  size: 50,
+                  type: "percentage"
+                }
+              }),
+              new TableCell({
+                children: [new Paragraph({
+                  text: "CE",
+                  alignment: AlignmentType.CENTER,
+                  bold: true
+                })]
+              }),
+              new TableCell({
+                children: [new Paragraph({
+                  text: "MG",
+                  alignment: AlignmentType.CENTER,
+                  bold: true
+                })]
+              }),
+              new TableCell({
+                children: [new Paragraph({
+                  text: "TB",
+                  alignment: AlignmentType.CENTER,
+                  bold: true
+                })],
+                shading: {
+                  fill: "FFF2CC"
+                }
+              }),
+              new TableCell({
+                children: [new Paragraph({
+                  text: "IM",
+                  alignment: AlignmentType.CENTER,
+                  bold: true
+                })],
+                shading: {
+                  fill: "D9EAD3"
+                }
+              })
+            ]
+          })
+        ];
+        
+        // Adicionar produtos
+        for (const product of block.products) {
+          rows.push(
+            new TableRow({
+              children: [
+                new TableCell({
+                  children: [new Paragraph(product.name)]
+                }),
+                new TableCell({
+                  children: [new Paragraph({
+                    text: product.values[0] ? product.values[0].toString() : "",
+                    alignment: AlignmentType.CENTER
+                  })]
+                }),
+                new TableCell({
+                  children: [new Paragraph({
+                    text: product.values[1] ? product.values[1].toString() : "",
+                    alignment: AlignmentType.CENTER
+                  })]
+                }),
+                new TableCell({
+                  children: [new Paragraph({
+                    text: product.values[2] ? product.values[2].toString() : "",
+                    alignment: AlignmentType.CENTER
+                  })],
+                  shading: {
+                    fill: "FFF2CC"
+                  }
+                }),
+                new TableCell({
+                  children: [new Paragraph({
+                    text: product.values[3] ? product.values[3].toString() : "",
+                    alignment: AlignmentType.CENTER
+                  })],
+                  shading: {
+                    fill: "D9EAD3"
+                  }
+                })
+              ]
+            })
+          );
+        }
+        
+        // Adicionar a tabela
+        tables.push(
+          new Table({
+            rows,
+            width: {
+              size: 100,
+              type: "percentage"
+            },
+            borders: {
+              top: { style: BorderStyle.SINGLE, size: 1 },
+              bottom: { style: BorderStyle.SINGLE, size: 1 },
+              left: { style: BorderStyle.SINGLE, size: 1 },
+              right: { style: BorderStyle.SINGLE, size: 1 },
+              insideHorizontal: { style: BorderStyle.SINGLE, size: 1 },
+              insideVertical: { style: BorderStyle.SINGLE, size: 1 }
+            }
+          })
+        );
+        
+        // Adicionar espaço entre as tabelas
+        tables.push(
+          new Paragraph({
+            text: "",
+            spacing: {
+              after: 200
+            }
+          })
+        );
+      }
+      
+      // Criar o documento
+      const doc = new Document({
+        sections: [
+          {
+            children: [
+              new Paragraph({
+                text: "MÓVEIS BONAFÉ - LISTA DE ENTREGA",
+                heading: HeadingLevel.HEADING_1,
+                alignment: AlignmentType.CENTER,
+                spacing: {
+                  after: 200
+                }
+              }),
+              ...tables
+            ]
+          }
+        ]
+      });
+      
+      // Gerar e baixar o documento
+      Packer.toBlob(doc).then(blob => {
+        saveAs(blob, "Lista_Entrega_Moveis_Bonafe.docx");
+      });
+    }
     
     // Botão para cancelar
     cancelBtn.addEventListener('click', () => {
