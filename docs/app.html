@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Móveis Bonafé - Lista de Entrega</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #ffc107;
+      --background: #f9f9f9;
+      --card-bg: #ffffff;
+      --text: #333333;
+      --border: #e0e0e0;
+      --shadow: rgba(0,0,0,0.1);
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: var(--background);
+      color: var(--text);
+      line-height: 1.5;
+    }
+    
+    header {
+      padding: 1.5rem 0;
+      box-shadow: 0 1px 3px var(--shadow);
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 2rem;
+    }
+    
+    .container {
+      width: 100%;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 1rem;
+    }
+    
+    .header-content {
+      text-align: center;
+    }
+    
+    .logo {
+      font-weight: bold;
+      text-transform: uppercase;
+      background: linear-gradient(to right, #000, var(--primary));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      font-size: 2rem;
+      letter-spacing: -0.5px;
+    }
+    
+    .divider {
+      height: 2px;
+      width: 100px;
+      background-color: var(--primary);
+      margin: 0.5rem auto 0.25rem;
+    }
+    
+    .tagline {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      font-weight: 500;
+      color: #000;
+    }
+    
+    .app-container {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+    
+    .card {
+      background: var(--card-bg);
+      border-radius: 8px;
+      box-shadow: 0 2px 4px var(--shadow);
+      padding: 1.5rem;
+    }
+    
+    .steps {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 1.5rem;
+    }
+    
+    .step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      flex: 1;
+    }
+    
+    .step:not(:last-child):after {
+      content: '';
+      position: absolute;
+      top: 15px;
+      right: -50%;
+      width: 100%;
+      height: 2px;
+      background-color: var(--border);
+      z-index: 0;
+    }
+    
+    .step-number {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background-color: var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      position: relative;
+      z-index: 1;
+    }
+    
+    .step.active .step-number {
+      background-color: var(--primary);
+      color: #000;
+    }
+    
+    .step-label {
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+    
+    .upload-area {
+      border: 2px dashed var(--border);
+      border-radius: 8px;
+      padding: 2rem;
+      text-align: center;
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+    
+    .upload-area:hover {
+      border-color: var(--primary);
+    }
+    
+    .upload-icon {
+      font-size: 2rem;
+      color: var(--primary);
+      margin-bottom: 1rem;
+    }
+    
+    .file-input {
+      display: none;
+    }
+    
+    .btn {
+      display: inline-block;
+      background-color: var(--primary);
+      color: #000;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 4px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      font-family: 'Poppins', sans-serif;
+    }
+    
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    
+    .file-info {
+      margin: 1rem 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
+    }
+    
+    .file-name {
+      font-weight: 500;
+    }
+    
+    .file-size {
+      color: #666;
+      font-size: 0.85rem;
+    }
+    
+    .progress-container {
+      margin: 1.5rem 0;
+    }
+    
+    .progress-bar {
+      width: 100%;
+      height: 8px;
+      background-color: var(--border);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    
+    .progress {
+      height: 100%;
+      background-color: var(--primary);
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+    
+    .preview-container {
+      margin-top: 1.5rem;
+    }
+    
+    .preview-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+    }
+    
+    .preview-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    
+    .preview-table th, .preview-table td {
+      border: 1px solid var(--border);
+      padding: 0.5rem;
+      text-align: left;
+    }
+    
+    .preview-table th {
+      background-color: #f5f5f5;
+      font-weight: 600;
+    }
+    
+    .actions {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+    
+    .hidden {
+      display: none;
+    }
+    
+    footer {
+      text-align: center;
+      padding: 2rem 0;
+      color: #666;
+      font-size: 0.875rem;
+      margin-top: 2rem;
+    }
+    
+    @media (max-width: 768px) {
+      .steps {
+        flex-direction: column;
+        gap: 1rem;
+      }
+      
+      .step:not(:last-child):after {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <div class="header-content">
+        <h1 class="logo">Móveis Bonafé</h1>
+        <div class="divider"></div>
+        <span class="tagline">Lista de Entrega</span>
+      </div>
+    </div>
+  </header>
+  
+  <main class="container">
+    <div class="app-container">
+      <div class="card">
+        <div class="steps">
+          <div class="step active">
+            <div class="step-number">1</div>
+            <div class="step-label">Upload do Excel</div>
+          </div>
+          <div class="step">
+            <div class="step-number">2</div>
+            <div class="step-label">Processamento</div>
+          </div>
+          <div class="step">
+            <div class="step-number">3</div>
+            <div class="step-label">Download do Word</div>
+          </div>
+        </div>
+        
+        <div id="upload-section">
+          <div class="upload-area" id="drop-area">
+            <div class="upload-icon">📂</div>
+            <h3>Arraste o arquivo Excel ou clique para selecionar</h3>
+            <p>Aceita apenas arquivos .xlsx</p>
+            <input type="file" class="file-input" id="file-input" accept=".xlsx">
+          </div>
+          
+          <div class="file-info hidden" id="file-info">
+            <div class="file-name" id="file-name"></div>
+            <div class="file-size" id="file-size"></div>
+          </div>
+          
+          <div class="progress-container hidden" id="progress-container">
+            <div class="progress-bar">
+              <div class="progress" id="progress"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="card hidden" id="preview-section">
+        <h2 class="preview-title">Prévia do Documento</h2>
+        <div class="preview-content" id="preview-content">
+          <!-- Aqui será inserida a prévia dos dados -->
+        </div>
+        
+        <div class="actions">
+          <button class="btn" id="generate-btn">Gerar Documento Word</button>
+          <button class="btn" id="cancel-btn" style="background-color: #f44336;">Cancelar</button>
+        </div>
+      </div>
+    </div>
+  </main>
+  
+  <footer>
+    <div class="container">
+      &copy; 2025 Móveis Bonafé. Todos os direitos reservados.
+    </div>
+  </footer>
+
+  <!-- Incluir bibliotecas necessárias -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/docx@7.8.0/build/index.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
+  
+  <script>
+    // Elementos DOM
+    const dropArea = document.getElementById('drop-area');
+    const fileInput = document.getElementById('file-input');
+    const fileInfo = document.getElementById('file-info');
+    const fileName = document.getElementById('file-name');
+    const fileSize = document.getElementById('file-size');
+    const progressContainer = document.getElementById('progress-container');
+    const progress = document.getElementById('progress');
+    const previewSection = document.getElementById('preview-section');
+    const previewContent = document.getElementById('preview-content');
+    const generateBtn = document.getElementById('generate-btn');
+    const cancelBtn = document.getElementById('cancel-btn');
+    const steps = document.querySelectorAll('.step');
+    
+    // Variáveis globais
+    let excelData = null;
+    
+    // Eventos de upload
+    dropArea.addEventListener('click', () => {
+      fileInput.click();
+    });
+    
+    dropArea.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropArea.style.backgroundColor = '#f9f9f9';
+    });
+    
+    dropArea.addEventListener('dragleave', () => {
+      dropArea.style.backgroundColor = '';
+    });
+    
+    dropArea.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropArea.style.backgroundColor = '';
+      
+      if (e.dataTransfer.files.length) {
+        handleFile(e.dataTransfer.files[0]);
+      }
+    });
+    
+    fileInput.addEventListener('change', () => {
+      if (fileInput.files.length) {
+        handleFile(fileInput.files[0]);
+      }
+    });
+    
+    // Processar arquivo
+    function handleFile(file) {
+      if (!file.name.endsWith('.xlsx')) {
+        alert('Por favor, selecione um arquivo Excel (.xlsx)');
+        return;
+      }
+      
+      // Mostrar informações do arquivo
+      fileName.textContent = file.name;
+      fileSize.textContent = formatFileSize(file.size);
+      fileInfo.classList.remove('hidden');
+      
+      // Mostrar progresso
+      progressContainer.classList.remove('hidden');
+      
+      // Simular progresso
+      let progressValue = 0;
+      const progressInterval = setInterval(() => {
+        progressValue += 5;
+        progress.style.width = `${progressValue}%`;
+        
+        if (progressValue >= 100) {
+          clearInterval(progressInterval);
+          setTimeout(() => {
+            // Mudar para o próximo passo
+            steps[0].classList.remove('active');
+            steps[1].classList.add('active');
+            
+            // Processar dados do Excel
+            processExcelFile(file);
+          }, 500);
+        }
+      }, 100);
+    }
+    
+    // Função para formatar o tamanho do arquivo
+    function formatFileSize(bytes) {
+      if (bytes < 1024) return bytes + ' bytes';
+      else if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+      else return (bytes / 1048576).toFixed(1) + ' MB';
+    }
+    
+    // Processar arquivo Excel
+    function processExcelFile(file) {
+      const reader = new FileReader();
+      
+      reader.onload = function(e) {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+        
+        // Obter dados da primeira planilha (aba)
+        const sheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+        const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+        
+        // Processe os dados
+        excelData = {
+          fileName: file.name,
+          fileSize: file.size,
+          processedData: processData(jsonData)
+        };
+        
+        // Mostrar prévia
+        displayPreview(excelData);
+        
+        // Mudar para o próximo passo
+        steps[1].classList.remove('active');
+        steps[2].classList.add('active');
+      };
+      
+      reader.readAsArrayBuffer(file);
+    }
+    
+    // Processar dados do Excel
+    function processData(jsonData) {
+      // Exemplo simplificado - na aplicação real, você implementaria a lógica de processamento completa
+      const blocks = [];
+      let currentBlock = null;
+      
+      for (let i = 1; i < jsonData.length; i++) {
+        const row = jsonData[i];
+        
+        if (row && row[0] && typeof row[0] === 'string' && row[0].trim() !== '') {
+          // Nova seção/cliente
+          if (currentBlock) {
+            blocks.push(currentBlock);
+          }
+          
+          currentBlock = {
+            name: row[0],
+            products: []
+          };
+        } else if (row && row[1] && currentBlock) {
+          // Produto
+          currentBlock.products.push({
+            name: row[1],
+            values: [row[2], row[3], row[4], row[5]]
+          });
+        }
+      }
+      
+      // Adicionar o último bloco
+      if (currentBlock) {
+        blocks.push(currentBlock);
+      }
+      
+      return blocks;
+    }
+    
+    // Exibir prévia dos dados processados
+    function displayPreview(data) {
+      if (!data || !data.processedData || data.processedData.length === 0) {
+        previewContent.innerHTML = '<p>Nenhum dado encontrado para processar.</p>';
+        return;
+      }
+      
+      let previewHtml = '<div style="max-height: 400px; overflow-y: auto;">';
+      
+      // Mostrar alguns blocos de exemplo
+      const maxBlocksToShow = Math.min(3, data.processedData.length);
+      
+      for (let i = 0; i < maxBlocksToShow; i++) {
+        const block = data.processedData[i];
+        
+        previewHtml += `
+          <div style="margin-bottom: 1.5rem;">
+            <h3 style="margin-bottom: 0.5rem;">${block.name}</h3>
+            <table class="preview-table">
+              <thead>
+                <tr>
+                  <th>Produto</th>
+                  <th>CE</th>
+                  <th>MG</th>
+                  <th>TB</th>
+                  <th>IM</th>
+                </tr>
+              </thead>
+              <tbody>
+        `;
+        
+        // Mostrar alguns produtos de exemplo
+        const maxProductsToShow = Math.min(5, block.products.length);
+        
+        for (let j = 0; j < maxProductsToShow; j++) {
+          const product = block.products[j];
+          
+          previewHtml += `
+            <tr>
+              <td>${product.name}</td>
+              <td>${product.values[0] || ''}</td>
+              <td>${product.values[1] || ''}</td>
+              <td>${product.values[2] || ''}</td>
+              <td>${product.values[3] || ''}</td>
+            </tr>
+          `;
+        }
+        
+        if (block.products.length > maxProductsToShow) {
+          previewHtml += `
+            <tr>
+              <td colspan="5" style="text-align: center;">(${block.products.length - maxProductsToShow} produtos adicionais)</td>
+            </tr>
+          `;
+        }
+        
+        previewHtml += `
+              </tbody>
+            </table>
+          </div>
+        `;
+      }
+      
+      if (data.processedData.length > maxBlocksToShow) {
+        previewHtml += `
+          <div style="text-align: center; padding: 1rem; background-color: #f5f5f5; border-radius: 4px;">
+            <p>(${data.processedData.length - maxBlocksToShow} blocos adicionais)</p>
+          </div>
+        `;
+      }
+      
+      previewHtml += '</div>';
+      
+      previewContent.innerHTML = previewHtml;
+      previewSection.classList.remove('hidden');
+    }
+    
+    // Botão para gerar documento
+    generateBtn.addEventListener('click', () => {
+      if (!excelData) {
+        alert('Nenhum dado disponível para gerar o documento.');
+        return;
+      }
+      
+      // Simulação de geração de documento
+      alert('Como este é um exemplo para o GitHub Pages, o download completo do documento Word não está disponível nesta versão simplificada. Na aplicação completa, um documento Word seria gerado e baixado automaticamente.');
+      
+      // Em uma aplicação real, você chamaria a função de geração de documento Word aqui
+      // generateWordDocument(excelData);
+    });
+    
+    // Botão para cancelar
+    cancelBtn.addEventListener('click', () => {
+      // Resetar tudo
+      fileInput.value = '';
+      fileInfo.classList.add('hidden');
+      progressContainer.classList.add('hidden');
+      previewSection.classList.add('hidden');
+      progress.style.width = '0%';
+      excelData = null;
+      
+      // Resetar passos
+      steps.forEach((step, index) => {
+        if (index === 0) {
+          step.classList.add('active');
+        } else {
+          step.classList.remove('active');
+        }
+      });
+    });
+  </script>
+</body>
+</html>
