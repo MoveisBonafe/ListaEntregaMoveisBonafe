@@ -12,6 +12,10 @@ build = ["sh", "-c", "npx vite build"]
 publicDir = "dist"
 run = ["sh", "-c", ""]
 
+[[deployment.rewrites]]
+from = "/*"
+to = "/index.html"
+
 [[ports]]
 localPort = 5000
 externalPort = 80
