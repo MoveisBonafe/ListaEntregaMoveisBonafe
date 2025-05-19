@@ -1,0 +1,1322 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Móveis Bonafé - Gerador de Lista de Entrega</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Bibliotecas necessárias -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+  
+  <style>
+    :root {
+      --primary: #ffc107;
+      --primary-dark: #ffb300;
+      --secondary: #333;
+      --text: #333;
+      --border: #e0e0e0;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #f5f5f5;
+      color: #333;
+      line-height: 1.5;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+    
+    header {
+      background-color: white;
+      border-bottom: 1px solid #ddd;
+      padding: 20px 0;
+      margin-bottom: 30px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    
+    .header-content {
+      text-align: center;
+    }
+    
+    .logo {
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 5px;
+      color: #ffc107;
+    }
+    
+    .tagline {
+      font-size: 14px;
+      color: #555;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    
+    .steps-container {
+      margin-bottom: 30px;
+    }
+    
+    .steps {
+      display: flex;
+      justify-content: space-between;
+      position: relative;
+      margin-bottom: 20px;
+    }
+    
+    .steps::before {
+      content: "";
+      position: absolute;
+      top: 20px;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background-color: #ddd;
+      z-index: 1;
+    }
+    
+    .step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      z-index: 2;
+      flex: 1;
+    }
+    
+    .step-number {
+      background-color: #ddd;
+      color: #555;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    
+    .step-number.active {
+      background-color: #ffc107;
+      color: black;
+    }
+    
+    .step-label {
+      font-size: 14px;
+      color: #777;
+    }
+    
+    .step-label.active {
+      color: #333;
+      font-weight: 500;
+    }
+    
+    main {
+      margin-bottom: 40px;
+    }
+    
+    .app-container {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 20px;
+    }
+    
+    @media (min-width: 768px) {
+      .app-container {
+        grid-template-columns: 300px 1fr;
+      }
+    }
+    
+    .card {
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    
+    h2 {
+      margin-bottom: 15px;
+      font-size: 18px;
+    }
+    
+    .drop-area {
+      border: 2px dashed #ddd;
+      border-radius: 8px;
+      padding: 30px 20px;
+      text-align: center;
+      margin-bottom: 20px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    
+    .drop-area:hover {
+      border-color: #ffc107;
+      background-color: rgba(255, 193, 7, 0.05);
+    }
+    
+    .drop-area.drag-over {
+      border-color: #ffc107;
+      background-color: rgba(255, 193, 7, 0.05);
+    }
+    
+    .drop-icon {
+      font-size: 36px;
+      margin-bottom: 10px;
+      color: #777;
+    }
+    
+    .drop-text {
+      margin-bottom: 15px;
+      color: #555;
+    }
+    
+    .btn {
+      display: inline-block;
+      padding: 10px 20px;
+      background-color: #ffc107;
+      color: black;
+      border: none;
+      border-radius: 4px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-decoration: none;
+    }
+    
+    .btn:hover {
+      background-color: #ffb300;
+      transform: translateY(-2px);
+    }
+    
+    .btn-secondary {
+      background-color: #f5f5f5;
+      border: 1px solid #ddd;
+      color: #333;
+    }
+    
+    .btn-secondary:hover {
+      background-color: #eee;
+    }
+    
+    .file-input {
+      display: none;
+    }
+    
+    .progress-container {
+      margin-top: 15px;
+      display: none;
+    }
+    
+    .progress-bar {
+      height: 10px;
+      background-color: #f0f0f0;
+      border-radius: 5px;
+      overflow: hidden;
+      margin-bottom: 5px;
+    }
+    
+    .progress-fill {
+      height: 100%;
+      background-color: #ffc107;
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+    
+    .progress-text {
+      text-align: right;
+      font-size: 12px;
+      color: #777;
+    }
+    
+    .file-info {
+      margin-top: 20px;
+      padding-top: 15px;
+      border-top: 1px solid #eee;
+      display: none;
+    }
+    
+    .file-info-item {
+      display: flex;
+      margin-bottom: 8px;
+    }
+    
+    .file-info-label {
+      width: 80px;
+      color: #777;
+      font-size: 14px;
+    }
+    
+    .file-info-value {
+      font-weight: 500;
+      font-size: 14px;
+    }
+    
+    .preview-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 1px solid #eee;
+    }
+    
+    .preview-title {
+      font-size: 18px;
+      font-weight: 600;
+    }
+    
+    .preview-subtitle {
+      font-size: 14px;
+      color: #777;
+      margin-top: 5px;
+    }
+    
+    .preview-message {
+      text-align: center;
+      padding: 40px 20px;
+      color: #777;
+    }
+    
+    .preview-message p {
+      margin-bottom: 5px;
+    }
+    
+    .document-preview {
+      display: none;
+      max-height: 400px;
+      overflow: auto;
+    }
+    
+    .preview-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    
+    .preview-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 15px;
+    }
+    
+    .preview-table th,
+    .preview-table td {
+      border: 1px solid #333;
+      padding: 6px 10px;
+      text-align: center;
+    }
+    
+    .preview-table th.client-name,
+    .preview-table td:first-child {
+      text-align: left;
+      font-weight: 500;
+    }
+    
+    .preview-table th.tb-header {
+      background-color: yellow;
+    }
+    
+    .preview-table td.im-cell {
+      background-color: #92D050;
+      color: black;
+    }
+    
+    .download-section {
+      display: none;
+      margin-top: 20px;
+      padding-top: 15px;
+      border-top: 1px solid #eee;
+    }
+    
+    .loader {
+      display: none;
+      width: 30px;
+      height: 30px;
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #ffc107;
+      border-radius: 50%;
+      margin: 0 auto 15px;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    .debug-info {
+      margin-top: 30px;
+      display: none;
+    }
+    
+    .debug-content {
+      background-color: #f5f5f5;
+      padding: 15px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-family: monospace;
+      overflow: auto;
+      max-height: 300px;
+      white-space: pre-wrap;
+    }
+    
+    footer {
+      background-color: white;
+      padding: 15px 0;
+      text-align: center;
+      border-top: 1px solid #eee;
+      font-size: 14px;
+      color: #777;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <div class="header-content">
+        <h1 class="logo">MÓVEIS BONAFÉ</h1>
+        <p class="tagline">Gerador de Lista de Entrega</p>
+      </div>
+    </div>
+  </header>
+  
+  <main>
+    <div class="container">
+      <div class="steps-container">
+        <div class="steps">
+          <div class="step">
+            <div id="step1" class="step-number active">1</div>
+            <div class="step-label active">Carregar Arquivo</div>
+          </div>
+          <div class="step">
+            <div id="step2" class="step-number">2</div>
+            <div class="step-label">Processamento</div>
+          </div>
+          <div class="step">
+            <div id="step3" class="step-number">3</div>
+            <div class="step-label">Download</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="app-container">
+        <!-- Left Column -->
+        <div>
+          <div class="card">
+            <h2>Carregar Arquivo Excel</h2>
+            <p style="margin-bottom: 15px; font-size: 14px; color: #666;">
+              Selecione ou arraste o arquivo da planilha (.xlsx) contendo as abas "LISTA POR PEDIDO" e "CARGA"
+            </p>
+            
+            <!-- Drop Area -->
+            <div id="dropArea" class="drop-area">
+              <div class="drop-icon">📄</div>
+              <p class="drop-text">Arraste e solte seu arquivo Excel aqui</p>
+              <button id="selectFileBtn" class="btn">Selecionar Arquivo</button>
+              <input type="file" id="fileInput" class="file-input" accept=".xlsx,.xls" />
+            </div>
+            
+            <!-- Progress -->
+            <div id="progressContainer" class="progress-container">
+              <div class="progress-bar">
+                <div id="progressFill" class="progress-fill"></div>
+              </div>
+              <div id="progressText" class="progress-text">0%</div>
+            </div>
+            
+            <!-- File Info -->
+            <div id="fileInfo" class="file-info">
+              <div class="file-info-item">
+                <span class="file-info-label">Arquivo:</span>
+                <span id="fileName" class="file-info-value"></span>
+              </div>
+              <div class="file-info-item">
+                <span class="file-info-label">Tamanho:</span>
+                <span id="fileSize" class="file-info-value"></span>
+              </div>
+              <div class="file-info-item">
+                <span class="file-info-label">Status:</span>
+                <span id="fileStatus" class="file-info-value">Pronto para processar</span>
+              </div>
+            </div>
+            
+            <!-- Download Word Button (hidden initially) -->
+            <div id="downloadSection" class="download-section">
+              <div id="downloadLoader" class="loader"></div>
+              <button id="downloadDocBtn" class="btn" style="width: 100%;">
+                <span>Baixar Documento</span>
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Right Column -->
+        <div>
+          <div class="card">
+            <div class="preview-header">
+              <div>
+                <h2 class="preview-title">Visualização do Documento</h2>
+                <p class="preview-subtitle">Prévia da formatação do documento final</p>
+              </div>
+            </div>
+            
+            <!-- Empty State -->
+            <div id="previewMessage" class="preview-message">
+              <p>Nenhum arquivo carregado</p>
+              <p style="font-size: 14px; color: #999;">Carregue um arquivo Excel para visualizar a pré-formatação</p>
+            </div>
+            
+            <!-- Document Preview -->
+            <div id="documentPreview" class="document-preview"></div>
+            
+            <!-- Actions -->
+            <div class="preview-actions">
+              <button id="resetBtn" class="btn btn-secondary" disabled>Cancelar</button>
+              <button id="generateBtn" class="btn" disabled>Gerar Documento</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Debug Section (hidden by default) -->
+      <div id="debugInfo" class="debug-info">
+        <h3 style="margin-bottom: 10px;">Logs de Debug:</h3>
+        <div id="debugContent" class="debug-content"></div>
+      </div>
+    </div>
+  </main>
+  
+  <!-- Footer -->
+  <footer>
+    <div class="container">
+      &copy; 2025 Móveis Bonafé. Todos os direitos reservados.
+    </div>
+  </footer>
+  
+  <script>
+    // Formatação e Utilidades
+    function formatFileSize(bytes) {
+      if (bytes === 0) return '0 Bytes';
+      const k = 1024;
+      const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    function truncateText(text, maxLength) {
+      if (!text) return '';
+      return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
+    }
+
+    function formatNumberWithLeadingZeros(value) {
+      if (value === null || value === undefined) return '000';
+      let numValue = typeof value === 'string' ? parseFloat(value) : value;
+      if (isNaN(numValue)) return '000';
+      
+      return numValue.toString().padStart(3, '0');
+    }
+
+    function showDebugInfo(message) {
+      const debugInfo = document.getElementById('debugInfo');
+      const debugContent = document.getElementById('debugContent');
+      debugInfo.style.display = 'block';
+      
+      if (typeof message === 'object') {
+        try {
+          const jsonStr = JSON.stringify(message, null, 2);
+          debugContent.textContent += jsonStr + '\n';
+        } catch (e) {
+          debugContent.textContent += "Objeto não serializável: " + e.message + '\n';
+        }
+      } else {
+        debugContent.textContent += message + '\n';
+      }
+    }
+
+    // Processamento do Excel
+    async function processExcelFile(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+          try {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, { type: 'array' });
+            
+            // Verificar as planilhas disponíveis
+            const sheetNames = workbook.SheetNames;
+            showDebugInfo('Planilhas encontradas: ' + JSON.stringify(sheetNames));
+            
+            // Verificar se as abas necessárias existem
+            const requiredSheets = ['LISTA POR PEDIDO', 'CARGA'];
+            
+            for (const sheet of requiredSheets) {
+              if (!sheetNames.includes(sheet)) {
+                showDebugInfo(`Planilha necessária '${sheet}' não encontrada no arquivo.`);
+                showDebugInfo('Planilhas disponíveis: ' + sheetNames.join(', '));
+                reject(new Error(`Planilha necessária '${sheet}' não encontrada no arquivo.`));
+                return;
+              }
+            }
+            
+            // Processar a aba LISTA POR PEDIDO
+            const worksheet = workbook.Sheets['LISTA POR PEDIDO'];
+            const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+            
+            showDebugInfo('Analisando cabeçalhos...');
+            
+            // Procurar pelo cabeçalho
+            let headerFound = false;
+            let columnIndices = null;
+            
+            for (let i = 0; i < Math.min(20, jsonData.length); i++) {
+              const row = jsonData[i];
+              if (row && Array.isArray(row)) {
+                showDebugInfo(`Linha ${i}: ${JSON.stringify(row)}`);
+                
+                // Verificar se esta linha contém as colunas necessárias
+                if (Array.isArray(row) && row.includes('CE') && row.includes('MG') && row.includes('TB') && row.includes('IM')) {
+                  columnIndices = [
+                    row.indexOf('CE'),
+                    row.indexOf('MG'),
+                    row.indexOf('TB'),
+                    row.indexOf('IM')
+                  ];
+                  headerFound = true;
+                  showDebugInfo(`Cabeçalho encontrado na linha ${i}: ${JSON.stringify(columnIndices)}`);
+                  break;
+                }
+              }
+            }
+            
+            // Se não encontrou o cabeçalho, tentar procurar por padrões flexíveis
+            if (!headerFound) {
+              showDebugInfo('Cabeçalho padrão não encontrado. Tentando encontrar padrões flexíveis...');
+              
+              // Procurar colunas por correspondência aproximada
+              for (let i = 0; i < Math.min(20, jsonData.length); i++) {
+                const row = jsonData[i];
+                if (row && Array.isArray(row)) {
+                  // Procurar por colunas que contenham caracteres semelhantes
+                  const ceIndex = row.findIndex(cell => cell && String(cell).toUpperCase().includes('CE'));
+                  const mgIndex = row.findIndex(cell => cell && String(cell).toUpperCase().includes('MG'));
+                  const tbIndex = row.findIndex(cell => cell && String(cell).toUpperCase().includes('TB'));
+                  const imIndex = row.findIndex(cell => cell && String(cell).toUpperCase().includes('IM'));
+                  
+                  if (ceIndex !== -1 && mgIndex !== -1 && tbIndex !== -1 && imIndex !== -1) {
+                    columnIndices = [ceIndex, mgIndex, tbIndex, imIndex];
+                    headerFound = true;
+                    showDebugInfo(`Cabeçalho flexível encontrado na linha ${i}: ${JSON.stringify(columnIndices)}`);
+                    showDebugInfo(`Valores: CE=${row[ceIndex]}, MG=${row[mgIndex]}, TB=${row[tbIndex]}, IM=${row[imIndex]}`);
+                    break;
+                  }
+                }
+              }
+            }
+            
+            if (!headerFound) {
+              showDebugInfo('Falha ao encontrar cabeçalho. Tente verificar o formato da sua planilha.');
+              reject(new Error('Cabeçalho com colunas CE, MG, TB, IM não encontrado. Verifique se sua planilha segue o formato esperado.'));
+              return;
+            }
+            
+            // Processar a aba CARGA para a seção TOTAL
+            const cargaWorksheet = workbook.Sheets['CARGA'];
+            const cargaJsonData = XLSX.utils.sheet_to_json(cargaWorksheet, { header: 1 });
+            
+            showDebugInfo('Processando dados...');
+            
+            const processedData = processData(jsonData, columnIndices);
+            const totalProducts = processTotalData(cargaJsonData);
+            
+            showDebugInfo(`Processamento concluído. Blocos de clientes: ${processedData.length}, Produtos totais: ${totalProducts ? totalProducts.length : 0}`);
+            
+            resolve({
+              fileName: file.name,
+              fileSize: file.size,
+              processedData,
+              totalProducts
+            });
+          } catch (error) {
+            showDebugInfo('Erro: ' + error.message + '\n' + error.stack);
+            reject(error);
+          }
+        };
+        
+        reader.onerror = function() {
+          reject(new Error('Erro ao ler o arquivo.'));
+        };
+        
+        reader.readAsArrayBuffer(file);
+      });
+    }
+
+    function processData(jsonData, columnIndices) {
+      const blocks = [];
+      let currentBlock = null;
+      
+      // Processar as linhas de dados
+      for (let i = 0; i < jsonData.length; i++) {
+        const row = jsonData[i];
+        if (!row || !Array.isArray(row) || row.length === 0) continue;
+        
+        // Verificar se esta é uma linha de CLIENTE (início de um novo bloco)
+        if (row[0] === 'CLIENTE' && row.length > 1 && row[1]) {
+          if (currentBlock) {
+            // Ordenar produtos alfabeticamente
+            currentBlock.products.sort((a, b) => a.name.localeCompare(b.name));
+            blocks.push(currentBlock);
+          }
+          
+          currentBlock = {
+            name: row[1].toString(),
+            products: []
+          };
+        }
+        // Se estamos dentro de um bloco e esta é uma linha de produto
+        else if (currentBlock && row[0] && row[0] !== 'CLIENTE' && row[0] !== 'ITEM') {
+          const productName = row[0].toString();
+          const values = columnIndices.map(idx => {
+            if (idx >= 0 && idx < row.length) {
+              const val = row[idx];
+              return (val !== undefined && val !== null && val !== '') ? Number(val) : null;
+            }
+            return null;
+          });
+          
+          currentBlock.products.push({
+            name: productName,
+            values: values
+          });
+        }
+      }
+      
+      // Adicionar o último bloco se existir
+      if (currentBlock) {
+        // Ordenar produtos alfabeticamente
+        currentBlock.products.sort((a, b) => a.name.localeCompare(b.name));
+        blocks.push(currentBlock);
+      }
+      
+      return blocks;
+    }
+
+    function processTotalData(jsonData) {
+      const totalProducts = [];
+      let columnIndices = null;
+      let dataStarted = false;
+      
+      // Encontrar a linha de cabeçalho para determinar os índices de coluna
+      for (let i = 0; i < jsonData.length; i++) {
+        const row = jsonData[i];
+        if (row && Array.isArray(row) && row.some(cell => cell === 'PRODUTO')) {
+          // Os índices das colunas PRODUTO, CE, MG, TB, IM
+          columnIndices = [
+            row.indexOf('PRODUTO'),
+            row.indexOf('CE'),
+            row.indexOf('MG'),
+            row.indexOf('TB'),
+            row.indexOf('IM')
+          ];
+          dataStarted = true;
+          continue;
+        }
+        
+        if (dataStarted && columnIndices && row && row.length > 0) {
+          const prodIdx = columnIndices[0];
+          if (prodIdx >= 0 && prodIdx < row.length && row[prodIdx]) {
+            const productName = row[prodIdx].toString();
+            const values = columnIndices.slice(1).map(idx => {
+              if (idx >= 0 && idx < row.length) {
+                const val = row[idx];
+                return (val !== undefined && val !== null && val !== '') ? Number(val) : null;
+              }
+              return null;
+            });
+            
+            totalProducts.push({
+              name: productName,
+              values: values
+            });
+          }
+        }
+      }
+      
+      return totalProducts;
+    }
+
+    // Gerar documento HTML que pode ser salvo como .doc
+    function generateHtmlDocument(excelData) {
+      try {
+        const { processedData, totalProducts } = excelData;
+        
+        if (!processedData || processedData.length === 0) {
+          alert("Nenhum dado processado para gerar o documento!");
+          return false;
+        }
+        
+        // Criar conteúdo HTML
+        let htmlContent = `
+<html xmlns:o="urn:schemas-microsoft-com:office:office"
+      xmlns:w="urn:schemas-microsoft-com:office:word"
+      xmlns="http://www.w3.org/TR/REC-html40">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <meta name="ProgId" content="Word.Document">
+  <meta name="Generator" content="Microsoft Word 15">
+  <meta name="Originator" content="Microsoft Word 15">
+  <title>Móveis Bonafé - Lista de Entrega</title>
+  <!--[if gte mso 9]>
+  <xml>
+    <w:WordDocument>
+      <w:View>Print</w:View>
+      <w:Zoom>100</w:Zoom>
+      <w:DoNotOptimizeForBrowser/>
+    </w:WordDocument>
+  </xml>
+  <![endif]-->
+  <style>
+    /* Estilo para Word */
+    @page {
+      margin: 1cm;
+    }
+    body {
+      font-family: "Calibri", sans-serif;
+      font-size: 11pt;
+    }
+    h1 {
+      font-size: 16pt;
+      font-weight: bold;
+      text-align: center;
+      color: #0070c0;
+      margin: 12pt 0;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 12pt;
+    }
+    td, th {
+      border: 1pt solid black;
+      padding: 3pt;
+      vertical-align: middle;
+    }
+    .client-name {
+      font-weight: bold;
+      text-align: left;
+      background-color: #f2f2f2;
+    }
+    .tb-header {
+      background-color: yellow;
+    }
+    .im-cell {
+      background-color: #92D050;
+      color: black;
+    }
+  </style>
+</head>
+<body>
+  <h1>MÓVEIS BONAFÉ - LISTA DE ENTREGA</h1>
+`;
+        
+        // Processar dados em pares de clientes (dois clientes por tabela)
+        for (let i = 0; i < processedData.length; i += 2) {
+          const leftBlock = processedData[i];
+          const rightBlock = i + 1 < processedData.length ? processedData[i + 1] : null;
+          
+          // Iniciar tabela
+          htmlContent += `
+  <table border="1" cellspacing="0" cellpadding="3">
+    <tr>
+      <th class="client-name">${leftBlock.name}</th>
+      <th>CE</th>
+      <th>MG</th>
+      <th class="tb-header">TB</th>
+      <th>IM</th>`;
+          
+          // Adicionar cliente da direita se existir
+          if (rightBlock) {
+            htmlContent += `
+      <th class="client-name">${rightBlock.name}</th>
+      <th>CE</th>
+      <th>MG</th>
+      <th class="tb-header">TB</th>
+      <th>IM</th>`;
+          } else {
+            htmlContent += `
+      <th class="client-name"></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>`;
+          }
+          
+          htmlContent += `
+    </tr>`;
+          
+          // Calcular número máximo de linhas
+          const leftProducts = leftBlock.products || [];
+          const rightProducts = rightBlock ? (rightBlock.products || []) : [];
+          const maxRows = Math.max(leftProducts.length, rightProducts.length);
+          
+          // Adicionar linhas de produtos
+          for (let j = 0; j < maxRows; j++) {
+            const leftProduct = j < leftProducts.length ? leftProducts[j] : null;
+            const rightProduct = j < rightProducts.length ? rightProducts[j] : null;
+            
+            htmlContent += `
+    <tr>`;
+            
+            // Células para o produto da esquerda
+            if (leftProduct) {
+              htmlContent += `
+      <td>${leftProduct.name}</td>
+      <td align="center">${leftProduct.values[0] ? formatNumberWithLeadingZeros(leftProduct.values[0]) : ''}</td>
+      <td align="center">${leftProduct.values[1] ? formatNumberWithLeadingZeros(leftProduct.values[1]) : ''}</td>
+      <td align="center">${leftProduct.values[2] ? formatNumberWithLeadingZeros(leftProduct.values[2]) : ''}</td>
+      <td align="center" ${leftProduct.values[3] ? 'class="im-cell"' : ''}>${leftProduct.values[3] ? formatNumberWithLeadingZeros(leftProduct.values[3]) : ''}</td>`;
+            } else {
+              htmlContent += `
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>`;
+            }
+            
+            // Células para o produto da direita
+            if (rightProduct) {
+              htmlContent += `
+      <td>${rightProduct.name}</td>
+      <td align="center">${rightProduct.values[0] ? formatNumberWithLeadingZeros(rightProduct.values[0]) : ''}</td>
+      <td align="center">${rightProduct.values[1] ? formatNumberWithLeadingZeros(rightProduct.values[1]) : ''}</td>
+      <td align="center">${rightProduct.values[2] ? formatNumberWithLeadingZeros(rightProduct.values[2]) : ''}</td>
+      <td align="center" ${rightProduct.values[3] ? 'class="im-cell"' : ''}>${rightProduct.values[3] ? formatNumberWithLeadingZeros(rightProduct.values[3]) : ''}</td>`;
+            } else {
+              htmlContent += `
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>`;
+            }
+            
+            htmlContent += `
+    </tr>`;
+          }
+          
+          // Finalizar tabela
+          htmlContent += `
+  </table>`;
+        }
+        
+        // Adicionar seção TOTAL se disponível
+        if (totalProducts && totalProducts.length > 0) {
+          htmlContent += `
+  <table border="1" cellspacing="0" cellpadding="3">
+    <tr>
+      <th class="client-name">TOTAL</th>
+      <th>CE</th>
+      <th>MG</th>
+      <th class="tb-header">TB</th>
+      <th>IM</th>
+      <th class="client-name"></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>`;
+          
+          for (const product of totalProducts) {
+            htmlContent += `
+    <tr>
+      <td>${product.name}</td>
+      <td align="center">${product.values[0] ? formatNumberWithLeadingZeros(product.values[0]) : ''}</td>
+      <td align="center">${product.values[1] ? formatNumberWithLeadingZeros(product.values[1]) : ''}</td>
+      <td align="center">${product.values[2] ? formatNumberWithLeadingZeros(product.values[2]) : ''}</td>
+      <td align="center" ${product.values[3] ? 'class="im-cell"' : ''}>${product.values[3] ? formatNumberWithLeadingZeros(product.values[3]) : ''}</td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+    </tr>`;
+          }
+          
+          htmlContent += `
+  </table>`;
+        }
+        
+        htmlContent += `
+</body>
+</html>`;
+        
+        // Criar um objeto Blob com o conteúdo HTML
+        const blob = new Blob([htmlContent], { type: 'application/msword' });
+        
+        // Realizar o download
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Lista_Entrega_MoveisBonafe_${new Date().toISOString().slice(0, 10)}.doc`;
+        document.body.appendChild(a);
+        a.click();
+        
+        // Limpar
+        setTimeout(() => {
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+        }, 100);
+        
+        return true;
+      } catch (error) {
+        console.error("Erro ao gerar documento HTML/DOC:", error);
+        showDebugInfo("Erro ao gerar documento HTML/DOC: " + error.message);
+        alert("Erro ao gerar documento: " + error.message);
+        return false;
+      }
+    }
+
+    // Gerar visualização do documento
+    function generatePreview(data) {
+      if (!data) return;
+      
+      const documentPreview = document.getElementById('documentPreview');
+      const previewMessage = document.getElementById('previewMessage');
+      
+      previewMessage.style.display = 'none';
+      documentPreview.style.display = 'block';
+      
+      // Criar uma prévia simples dos primeiros clientes
+      let previewHtml = '<h3 style="font-weight: 600; margin-bottom: 15px;">Prévia do documento:</h3>';
+      
+      const previewCount = Math.min(2, data.processedData.length);
+      const blocks = data.processedData.slice(0, previewCount);
+      
+      if (!blocks || blocks.length === 0) {
+        documentPreview.innerHTML = '<p style="color: red;">Não foi possível gerar a prévia. Verifique se o arquivo está no formato correto.</p>';
+        return;
+      }
+      
+      // Adicionar tabela de exemplo
+      previewHtml += `
+      <table class="preview-table">
+        <tr>
+          <th class="client-name">${blocks[0]?.name || 'CLIENTE EXEMPLO'}</th>
+          <th>CE</th>
+          <th>MG</th>
+          <th class="tb-header">TB</th>
+          <th>IM</th>`;
+      
+      if (blocks.length > 1) {
+        previewHtml += `
+          <th class="client-name">${blocks[1].name}</th>
+          <th>CE</th>
+          <th>MG</th>
+          <th class="tb-header">TB</th>
+          <th>IM</th>`;
+      } else {
+        previewHtml += `
+          <th class="client-name"></th>
+          <th></th>
+          <th></th>
+          <th></th>
+          <th></th>`;
+      }
+      
+      previewHtml += `
+        </tr>`;
+      
+      // Calcular número máximo de linhas para a prévia
+      const maxPreviewRows = 5;
+      let block1Products = [];
+      let block2Products = [];
+      
+      if (blocks.length > 0 && blocks[0]?.products) {
+        block1Products = blocks[0].products.slice(0, maxPreviewRows);
+      }
+      
+      if (blocks.length > 1 && blocks[1]?.products) {
+        block2Products = blocks[1].products.slice(0, maxPreviewRows);
+      }
+      
+      const maxRows = Math.max(block1Products.length, block2Products.length);
+      
+      // Adicionar linhas de produtos
+      for (let i = 0; i < maxRows; i++) {
+        const leftProduct = i < block1Products.length ? block1Products[i] : null;
+        const rightProduct = i < block2Products.length ? block2Products[i] : null;
+        
+        previewHtml += `
+        <tr>`;
+        
+        // Produto da esquerda
+        if (leftProduct) {
+          previewHtml += `
+          <td>${leftProduct.name}</td>
+          <td>${leftProduct.values[0] ? formatNumberWithLeadingZeros(leftProduct.values[0]) : ''}</td>
+          <td>${leftProduct.values[1] ? formatNumberWithLeadingZeros(leftProduct.values[1]) : ''}</td>
+          <td>${leftProduct.values[2] ? formatNumberWithLeadingZeros(leftProduct.values[2]) : ''}</td>
+          <td ${leftProduct.values[3] ? 'class="im-cell"' : ''}>${leftProduct.values[3] ? formatNumberWithLeadingZeros(leftProduct.values[3]) : ''}</td>`;
+        } else {
+          previewHtml += `
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>`;
+        }
+        
+        // Produto da direita
+        if (rightProduct) {
+          previewHtml += `
+          <td>${rightProduct.name}</td>
+          <td>${rightProduct.values[0] ? formatNumberWithLeadingZeros(rightProduct.values[0]) : ''}</td>
+          <td>${rightProduct.values[1] ? formatNumberWithLeadingZeros(rightProduct.values[1]) : ''}</td>
+          <td>${rightProduct.values[2] ? formatNumberWithLeadingZeros(rightProduct.values[2]) : ''}</td>
+          <td ${rightProduct.values[3] ? 'class="im-cell"' : ''}>${rightProduct.values[3] ? formatNumberWithLeadingZeros(rightProduct.values[3]) : ''}</td>`;
+        } else {
+          previewHtml += `
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>`;
+        }
+        
+        previewHtml += `
+        </tr>`;
+      }
+      
+      previewHtml += `
+      </table>
+      <p style="text-align: center; color: #666; font-style: italic; margin-top: 10px;">Esta é apenas uma prévia. O documento completo incluirá todos os clientes e produtos.</p>`;
+      
+      documentPreview.innerHTML = previewHtml;
+    }
+
+    // Código principal
+    document.addEventListener('DOMContentLoaded', function() {
+      // Elementos DOM
+      const dropArea = document.getElementById('dropArea');
+      const fileInput = document.getElementById('fileInput');
+      const selectFileBtn = document.getElementById('selectFileBtn');
+      const progressContainer = document.getElementById('progressContainer');
+      const progressFill = document.getElementById('progressFill');
+      const progressText = document.getElementById('progressText');
+      const fileInfo = document.getElementById('fileInfo');
+      const fileName = document.getElementById('fileName');
+      const fileSize = document.getElementById('fileSize');
+      const fileStatus = document.getElementById('fileStatus');
+      const resetBtn = document.getElementById('resetBtn');
+      const generateBtn = document.getElementById('generateBtn');
+      const downloadDocBtn = document.getElementById('downloadDocBtn');
+      const downloadSection = document.getElementById('downloadSection');
+      const downloadLoader = document.getElementById('downloadLoader');
+      const previewMessage = document.getElementById('previewMessage');
+      const documentPreview = document.getElementById('documentPreview');
+      
+      // Indicadores de etapas
+      const step1 = document.getElementById('step1');
+      const step2 = document.getElementById('step2');
+      const step3 = document.getElementById('step3');
+      
+      // Estado
+      let currentExcelData = null;
+      
+      // Botão de seleção de arquivo
+      selectFileBtn.addEventListener('click', function() {
+        fileInput.click();
+      });
+      
+      // Mudança no input de arquivo
+      fileInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+          handleFile(file);
+        }
+      });
+      
+      // Drag & Drop
+      ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dropArea.addEventListener(eventName, function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+        }, false);
+      });
+      
+      ['dragenter', 'dragover'].forEach(eventName => {
+        dropArea.addEventListener(eventName, function() {
+          dropArea.classList.add('drag-over');
+        }, false);
+      });
+      
+      ['dragleave', 'drop'].forEach(eventName => {
+        dropArea.addEventListener(eventName, function() {
+          dropArea.classList.remove('drag-over');
+        }, false);
+      });
+      
+      dropArea.addEventListener('drop', function(e) {
+        const file = e.dataTransfer.files[0];
+        if (file) {
+          handleFile(file);
+        }
+      }, false);
+      
+      // Botão Reset
+      resetBtn.addEventListener('click', function() {
+        resetApp();
+      });
+      
+      // Botão Generate
+      generateBtn.addEventListener('click', function() {
+        if (currentExcelData) {
+          // Mostrar a seção de download
+          downloadSection.style.display = 'block';
+          
+          // Atualizar indicador de etapas
+          step2.classList.remove('active');
+          step3.classList.add('active');
+          
+          document.querySelectorAll('.step-label')[2].classList.add('active');
+          document.querySelectorAll('.step-label')[1].classList.remove('active');
+        }
+      });
+      
+      // Botão Download doc
+      downloadDocBtn.addEventListener('click', function() {
+        if (currentExcelData) {
+          // Mostrar loader
+          downloadLoader.style.display = 'block';
+          
+          // Gerar o documento HTML/DOC
+          setTimeout(() => {
+            try {
+              const result = generateHtmlDocument(currentExcelData);
+              if (result) {
+                console.log("Documento gerado com sucesso");
+              } else {
+                console.error("Falha ao gerar documento");
+              }
+            } catch (error) {
+              console.error("Erro crítico ao gerar documento:", error);
+              alert("Erro ao gerar documento: " + error.message);
+            }
+            
+            downloadLoader.style.display = 'none';
+          }, 500);
+        }
+      });
+      
+      // Processar arquivo
+      function handleFile(file) {
+        if (!file) return;
+        
+        const fileExtension = file.name.split('.').pop().toLowerCase();
+        if (fileExtension !== 'xlsx' && fileExtension !== 'xls') {
+          alert('Por favor, selecione um arquivo Excel válido (.xlsx ou .xls)');
+          return;
+        }
+        
+        // Resetar estado da aplicação
+        resetApp();
+        
+        // Atualizar informações do arquivo
+        fileInfo.style.display = 'block';
+        fileName.textContent = truncateText(file.name, 25);
+        fileSize.textContent = formatFileSize(file.size);
+        fileStatus.textContent = 'Processando...';
+        
+        // Mostrar progresso
+        progressContainer.style.display = 'block';
+        updateProgress(10);
+        
+        // Atualizar etapas
+        step1.classList.remove('active');
+        step2.classList.add('active');
+        
+        document.querySelectorAll('.step-label')[1].classList.add('active');
+        document.querySelectorAll('.step-label')[0].classList.remove('active');
+        
+        // Iniciar processamento
+        processExcelFile(file)
+          .then(data => {
+            updateProgress(90);
+            
+            // Atualizar estado da aplicação
+            currentExcelData = data;
+            
+            // Atualizar UI
+            fileStatus.textContent = 'Processado com sucesso';
+            updateProgress(100);
+            
+            // Habilitar botões
+            resetBtn.disabled = false;
+            generateBtn.disabled = false;
+            
+            // Gerar prévia
+            generatePreview(data);
+          })
+          .catch(error => {
+            console.error('Error processing file:', error);
+            fileStatus.textContent = 'Erro: ' + error.message;
+            updateProgress(0);
+          });
+      }
+      
+      // Atualizar barra de progresso
+      function updateProgress(percent) {
+        progressFill.style.width = percent + '%';
+        progressText.textContent = percent + '%';
+      }
+      
+      // Resetar a aplicação
+      function resetApp() {
+        // Resetar estado
+        currentExcelData = null;
+        
+        // Resetar UI
+        fileInput.value = '';
+        fileInfo.style.display = 'none';
+        progressContainer.style.display = 'none';
+        updateProgress(0);
+        previewMessage.style.display = 'block';
+        documentPreview.style.display = 'none';
+        downloadSection.style.display = 'none';
+        downloadLoader.style.display = 'none';
+        
+        // Resetar botões
+        resetBtn.disabled = true;
+        generateBtn.disabled = true;
+        
+        // Resetar etapas
+        step1.classList.add('active');
+        step2.classList.remove('active');
+        step3.classList.remove('active');
+        
+        document.querySelectorAll('.step-label')[0].classList.add('active');
+        document.querySelectorAll('.step-label')[1].classList.remove('active');
+        document.querySelectorAll('.step-label')[2].classList.remove('active');
+        
+        // Ocultar área de debug
+        document.getElementById('debugInfo').style.display = 'none';
+        document.getElementById('debugContent').textContent = '';
+      }
+    });
+  </script>
+</body>
+</html>
