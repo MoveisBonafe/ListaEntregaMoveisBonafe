@@ -188,14 +188,14 @@ function createDocumentSections(blocks: DataBlock[], options: {
     }
   }
   
-  // Filtra apenas páginas com conteúdo real
-  const pagesWithContent = pages.filter(({ leftBlocks, rightBlocks }) => {
-    return (leftBlocks.length > 0 && leftBlocks.some(block => block.products.length > 0)) || 
-           (rightBlocks.length > 0 && rightBlocks.some(block => block.products.length > 0));
-  });
+  // Usar todas as páginas, mesmo vazias
+  // Garantir que pelo menos uma página seja criada
+  if (pages.length === 0) {
+    pages.push({ leftBlocks: [], rightBlocks: [] });
+  }
   
-  // Cria tabelas apenas para páginas com conteúdo
-  pagesWithContent.forEach(({ leftBlocks, rightBlocks }) => {
+  // Cria tabelas para todas as páginas, mesmo vazias
+  pages.forEach(({ leftBlocks, rightBlocks }) => {
     const table = createPageTable(leftBlocks, rightBlocks, options);
     
     if (table) {  // Verifica se a tabela não é nula
