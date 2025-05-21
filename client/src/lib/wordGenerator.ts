@@ -1,521 +1,354 @@
-import { Document, Packer, Paragraph, TextRun, Table, TableCell, TableRow, BorderStyle, AlignmentType, WidthType, HeightRule } from 'docx';
+import { Document, Packer, Paragraph, Table, TableRow, TableCell, BorderStyle, WidthType, TextRun, HeadingLevel, convertInchesToTwip } from 'docx';
 import { saveAs } from 'file-saver';
-import { ExcelData, DataBlock, ProductData } from '@/types';
-
-// Define typed arrays for sections
-interface DocSection {
-  properties: Record<string, any>;
-  children: Table[];
-}
-
-// Interface para as opções de célula da tabela
-interface TableCellOptions {
-  isHeader?: boolean;
-  width?: number;
-  bold?: boolean;
-  highlight?: 'yellow' | 'green';
-  alignLeft?: boolean;
-  colSpan?: number;
-}
+import { ExcelData } from '@/types';
 
 export async function generateWordDocument(excelData: ExcelData): Promise<void> {
-  // Constants for document formatting
-  const fontName = 'Times New Roman';
-  const fontSize = 24; // 12pt = 24 half-points in docx
-  // Altura da linha em twips (1 cm = 567 twips, então 0.5cm = 284 twips exatamente)
-  const rowHeight = 284;
-  const columnWidth = 1000; // 1.0cm for number columns
-  const nameColumnWidth = 5000; // 5.0cm for name columns
+  const { processedData, totalProducts } = excelData;
   
-  // Create document sections
-  const sections = createDocumentSections(excelData.processedData, {
-    fontName,
-    fontSize,
-    rowHeight,
-    columnWidth,
-    nameColumnWidth,
-    totalProducts: excelData.totalProducts
-  });
+  // Configuração para exatamente 50 linhas por página
+  const ROWS_PER_PAGE = 50;
   
-  // Create the document with table settings
-  const doc = new Document({
-    sections: sections,
-    styles: {
-      paragraphStyles: [
-        {
-          id: "Normal",
-          name: "Normal",
-          basedOn: "Normal",
-          next: "Normal",
-          quickFormat: true,
-          run: {
-            font: fontName,
-            size: fontSize,
-          }
-        }
-      ]
-    }
-  });
+  // Array para armazenar todos os elementos do documento
+  const documentElements: any[] = [];
   
-  try {
-    // Generate and save the file - using Blob directly for browser environment
-    const blob = await Packer.toBlob(doc);
-    saveAs(blob, `Lista_${new Date().toISOString().slice(0,10)}.docx`);
-  } catch (error) {
-    console.error("Erro ao gerar documento:", error);
-    throw new Error("Erro ao gerar o documento. Por favor, tente novamente.");
-  }
-}
-
-function createDocumentSections(blocks: DataBlock[], options: {
-  fontName: string;
-  fontSize: number;
-  rowHeight: number;
-  columnWidth: number;
-  nameColumnWidth: number;
-  totalProducts?: ProductData[];
-}): DocSection[] {
-  const sections: DocSection[] = [];
-  // Ajustado para corresponder ao número de linhas que cabem na tabela com altura de 0.5cm
-  const maxRowsPerSide = 48; // Número máximo de linhas por lado (considerando altura de linha de 0.5cm)
-  const blocksWithProducts = blocks.filter(block => block.products.length > 0);
+  // Contador de linhas na página atual
+  let currentPageRows = 0;
   
-  // Organiza os blocos em páginas
-  const pages: Array<{leftBlocks: DataBlock[], rightBlocks: DataBlock[]}> = [];
-  
-  // Inicializa a primeira página
-  let currentPage = {
-    leftBlocks: [] as DataBlock[],
-    rightBlocks: [] as DataBlock[]
-  };
-  
-  // Calcula o número de linhas que um bloco ocuparia (nome + produtos + linha extra entre blocos)
-  const calculateBlockSize = (block: DataBlock): number => {
-    // +1 para o nome e +1 para a linha extra entre blocos (quando não for o último)
-    return 1 + block.products.length + (block.products.length > 0 ? 1 : 0);
-  };
-  
-  // Calcula o total de linhas na coluna esquerda da página atual
-  const getLeftColumnSize = (): number => {
-    return currentPage.leftBlocks.reduce((total, block) => {
-      return total + calculateBlockSize(block);
-    }, 0);
-  };
-  
-  // Calcula o total de linhas na coluna direita da página atual
-  const getRightColumnSize = (): number => {
-    return currentPage.rightBlocks.reduce((total, block) => {
-      return total + calculateBlockSize(block);
-    }, 0);
-  };
-  
-  // Distribui os blocos entre as colunas e páginas seguindo as regras solicitadas
-  for (const block of blocksWithProducts) {
-    const blockSize = calculateBlockSize(block);
+  // Processar cada bloco de dados (cliente)
+  for (const block of processedData) {
+    if (block.products.length === 0) continue;
     
-    // Verifica se o bloco cabe na coluna esquerda da página atual
-    if (getLeftColumnSize() + blockSize <= maxRowsPerSide) {
-      // Adiciona o bloco na coluna esquerda
-      currentPage.leftBlocks.push(block);
-    } 
-    // Se não couber na coluna esquerda, tenta na coluna direita
-    else if (getRightColumnSize() + blockSize <= maxRowsPerSide) {
-      // Adiciona o bloco na coluna direita
-      currentPage.rightBlocks.push(block);
-    } 
-    // Se não couber em nenhuma das colunas, inicia uma nova página
-    else {
-      // Salva a página atual
-      pages.push({...currentPage});
-      
-      // Inicia uma nova página com o bloco na coluna esquerda
-      currentPage = {
-        leftBlocks: [block],
-        rightBlocks: []
-      };
-    }
-  }
-  
-  // Adiciona a última página se houver blocos nela
-  if (currentPage.leftBlocks.length > 0 || currentPage.rightBlocks.length > 0) {
-    pages.push({...currentPage});
-  }
-  
-  // Processa a seção TOTAL se existirem produtos totais
-  if (options.totalProducts && options.totalProducts.length > 0) {
-    const totalBlock: DataBlock = {
-      name: "TOTAL",
-      products: options.totalProducts
-    };
+    // Verificar se precisamos de uma nova página
+    const blockSize = 1 + block.products.length; // 1 para o título + produtos
     
-    // Tamanho do bloco TOTAL
-    const totalBlockSize = calculateBlockSize(totalBlock);
-    
-    // Verifica se há uma página atual com espaço na coluna esquerda
-    const lastPage = pages[pages.length - 1];
-    
-    if (lastPage) {
-      // Verifica se cabe na coluna esquerda da última página
-      const leftSize = lastPage.leftBlocks.reduce((total, block) => total + calculateBlockSize(block), 0);
-      
-      if (leftSize + totalBlockSize <= maxRowsPerSide) {
-        // Adiciona o bloco TOTAL na coluna esquerda da última página
-        lastPage.leftBlocks.push(totalBlock);
-      } 
-      // Se não couber na coluna esquerda, tenta na coluna direita
-      else {
-        const rightSize = lastPage.rightBlocks.reduce((total, block) => total + calculateBlockSize(block), 0);
-        
-        if (rightSize + totalBlockSize <= maxRowsPerSide) {
-          // Adiciona o bloco TOTAL na coluna direita da última página
-          lastPage.rightBlocks.push(totalBlock);
-        } 
-        // Se não couber em nenhuma das colunas, cria uma nova página
-        else {
-          // Cria uma nova página com o bloco TOTAL na coluna esquerda
-          pages.push({
-            leftBlocks: [totalBlock],
-            rightBlocks: []
-          });
-        }
+    if (currentPageRows > 0 && currentPageRows + blockSize > ROWS_PER_PAGE) {
+      // Adicionar linhas vazias para completar exatamente 50 linhas
+      const emptyRowsNeeded = ROWS_PER_PAGE - currentPageRows;
+      for (let i = 0; i < emptyRowsNeeded; i++) {
+        documentElements.push(new Paragraph({ text: " " }));
       }
-    } else {
-      // Se não houver página, cria uma com o bloco TOTAL
-      pages.push({
-        leftBlocks: [totalBlock],
-        rightBlocks: []
-      });
-    }
-  }
-  
-  // Filtra apenas páginas com conteúdo real
-  const pagesWithContent = pages.filter(({ leftBlocks, rightBlocks }) => {
-    return (leftBlocks.length > 0 && leftBlocks.some(block => block.products.length > 0)) || 
-           (rightBlocks.length > 0 && rightBlocks.some(block => block.products.length > 0));
-  });
-  
-  // Cria tabelas apenas para páginas com conteúdo
-  pagesWithContent.forEach(({ leftBlocks, rightBlocks }) => {
-    const table = createPageTable(leftBlocks, rightBlocks, options);
-    
-    if (table) {  // Verifica se a tabela não é nula
-      sections.push({
-        properties: {},
-        children: [table]
-      });
-    }
-  });
-  
-  return sections;
-}
-
-function createPageTable(leftBlocks: DataBlock[], rightBlocks: DataBlock[], options: {
-  fontName: string;
-  fontSize: number;
-  rowHeight: number;
-  columnWidth: number;
-  nameColumnWidth: number;
-}) {
-  // Limitar texto a 27 caracteres para colunas de nomes
-  const truncateNameText = (text: string): string => {
-    return text.length > 27 ? text.substring(0, 27) : text;
-  };
-  
-  // Get the first name for each side (if available)
-  const firstLeftName = leftBlocks.length > 0 ? truncateNameText(leftBlocks[0].name) : '';
-  const firstRightName = rightBlocks.length > 0 ? truncateNameText(rightBlocks[0].name) : '';
-  
-  // Create header row with names in the first row
-  const headerRow = new TableRow({
-    height: {
-      value: options.rowHeight,
-      rule: HeightRule.EXACT
-    },
-    children: [
-      createTableCell(firstLeftName, options, { isHeader: true, width: options.nameColumnWidth, bold: true, alignLeft: true }),
-      createTableCell('CE', options, { isHeader: true, width: options.columnWidth, bold: false }),
-      createTableCell('MG', options, { isHeader: true, width: options.columnWidth }),
-      createTableCell('TB', options, { isHeader: true, width: options.columnWidth, bold: true, highlight: 'yellow' }),
-      createTableCell('IM', options, { isHeader: true, width: options.columnWidth, bold: true, highlight: 'green' }),
-      createTableCell(firstRightName, options, { isHeader: true, width: options.nameColumnWidth, bold: true, alignLeft: true }),
-      createTableCell('CE', options, { isHeader: true, width: options.columnWidth, bold: false }),
-      createTableCell('MG', options, { isHeader: true, width: options.columnWidth }),
-      createTableCell('TB', options, { isHeader: true, width: options.columnWidth, bold: true, highlight: 'yellow' }),
-      createTableCell('IM', options, { isHeader: true, width: options.columnWidth, bold: true, highlight: 'green' }),
-    ],
-  });
-  
-  // Create data rows
-  const dataRows: TableRow[] = [];
-  
-  // Process blocks to create two columns of data
-  const leftRows = processBlocksToRows(leftBlocks);
-  const rightRows = processBlocksToRows(rightBlocks);
-  
-  // Skip the first row of each side since we already included it in the header
-  const leftRowsWithoutFirst = leftRows.slice(1);
-  const rightRowsWithoutFirst = rightRows.slice(1);
-  
-  // Determine max rows needed
-  const maxRows = Math.max(leftRowsWithoutFirst.length, rightRowsWithoutFirst.length);
-  
-  // Create rows
-  for (let i = 0; i < maxRows; i++) {
-    const leftRow = leftRowsWithoutFirst[i] || { name: '', ce: '', mg: '', tb: '', im: '' };
-    const rightRow = rightRowsWithoutFirst[i] || { name: '', ce: '', mg: '', tb: '', im: '' };
-    
-    // Truncar nomes para 27 caracteres
-    const leftName = leftRow.name.length > 27 ? leftRow.name.substring(0, 27) : leftRow.name;
-    const rightName = rightRow.name.length > 27 ? rightRow.name.substring(0, 27) : rightRow.name;
-    
-    const isLeftNameRow = !!(leftRow.name && leftRow.ce === '' && leftRow.mg === '' && leftRow.tb === '' && leftRow.im === '');
-    const isRightNameRow = !!(rightRow.name && rightRow.ce === '' && rightRow.mg === '' && rightRow.tb === '' && rightRow.im === '');
-    
-    // Verificar se esta é uma linha de TOTAL
-    const isLeftTotalRow = leftRow.ce === "TOTAL_MARKER";
-    const isRightTotalRow = rightRow.ce === "TOTAL_MARKER";
-    
-    // Criar uma linha com tratamento especial para TOTAL
-    let rowChildren = [];
-    
-    if (isLeftTotalRow) {
-      // Se for linha TOTAL na esquerda, adiciona TOTAL na primeira coluna e mantém os cabeçalhos CE, MG, TB, IM
-      rowChildren = [
-        createTableCell("TOTAL", options, { 
-          width: options.nameColumnWidth,
-          bold: true,
-          isHeader: true // Para centralizar e aplicar estilo de cabeçalho
-        }),
-        createTableCell("CE", options, { width: options.columnWidth, bold: false, isHeader: true }),
-        createTableCell("MG", options, { width: options.columnWidth, bold: true, isHeader: true }),
-        createTableCell("TB", options, { width: options.columnWidth, bold: true, highlight: 'yellow', isHeader: true }),
-        createTableCell("IM", options, { width: options.columnWidth, bold: true, highlight: 'green', isHeader: true }),
-        createTableCell(rightName, options, { 
-          width: options.nameColumnWidth,
-          bold: isRightNameRow,
-          alignLeft: true
-        }),
-        createTableCell(rightRow.ce, options, { width: options.columnWidth, bold: false }),
-        createTableCell(rightRow.mg, options, { width: options.columnWidth, bold: !!rightRow.mg }),
-        createTableCell(rightRow.tb, options, { width: options.columnWidth, bold: true, highlight: 'yellow' }),
-        createTableCell(rightRow.im, options, { width: options.columnWidth, bold: true, highlight: 'green' }),
-      ];
-    } else if (isRightTotalRow) {
-      // Se for linha TOTAL na direita, adiciona TOTAL na primeira coluna e mantém os cabeçalhos CE, MG, TB, IM
-      rowChildren = [
-        createTableCell(leftName, options, { 
-          width: options.nameColumnWidth,
-          bold: isLeftNameRow,
-          alignLeft: true
-        }),
-        createTableCell(leftRow.ce, options, { width: options.columnWidth, bold: false }),
-        createTableCell(leftRow.mg, options, { width: options.columnWidth, bold: !!leftRow.mg }),
-        createTableCell(leftRow.tb, options, { width: options.columnWidth, bold: true, highlight: 'yellow' }),
-        createTableCell(leftRow.im, options, { width: options.columnWidth, bold: true, highlight: 'green' }),
-        createTableCell("TOTAL", options, { 
-          width: options.nameColumnWidth,
-          bold: true,
-          isHeader: true // Para centralizar e aplicar estilo de cabeçalho
-        }),
-        createTableCell("CE", options, { width: options.columnWidth, bold: false, isHeader: true }),
-        createTableCell("MG", options, { width: options.columnWidth, bold: true, isHeader: true }),
-        createTableCell("TB", options, { width: options.columnWidth, bold: true, highlight: 'yellow', isHeader: true }),
-        createTableCell("IM", options, { width: options.columnWidth, bold: true, highlight: 'green', isHeader: true }),
-      ];
-    } else {
-      // Linha normal (não é TOTAL)
-      rowChildren = [
-        createTableCell(leftName, options, { 
-          width: options.nameColumnWidth,
-          bold: isLeftNameRow,
-          alignLeft: true
-        }),
-        createTableCell(leftRow.ce, options, { width: options.columnWidth, bold: false }),
-        createTableCell(leftRow.mg, options, { width: options.columnWidth, bold: !!leftRow.mg }),
-        createTableCell(leftRow.tb, options, { width: options.columnWidth, bold: true, highlight: 'yellow' }),
-        createTableCell(leftRow.im, options, { width: options.columnWidth, bold: true, highlight: 'green' }),
-        createTableCell(rightName, options, { 
-          width: options.nameColumnWidth,
-          bold: isRightNameRow,
-          alignLeft: true
-        }),
-        createTableCell(rightRow.ce, options, { width: options.columnWidth, bold: false }),
-        createTableCell(rightRow.mg, options, { width: options.columnWidth, bold: !!rightRow.mg }),
-        createTableCell(rightRow.tb, options, { width: options.columnWidth, bold: true, highlight: 'yellow' }),
-        createTableCell(rightRow.im, options, { width: options.columnWidth, bold: true, highlight: 'green' }),
-      ];
+      
+      // Quebra de página
+      documentElements.push(new Paragraph({ pageBreakBefore: true }));
+      currentPageRows = 0;
     }
     
-    dataRows.push(
-      new TableRow({
-        height: {
-          value: options.rowHeight,
-          rule: HeightRule.EXACT
-        },
-        children: rowChildren,
+    // Adicionar título do bloco (cliente)
+    documentElements.push(
+      new Paragraph({
+        text: block.name,
+        heading: HeadingLevel.HEADING_2,
+        spacing: { before: 200, after: 100 }
       })
     );
-  }
-  
-  // Verificar se há blocos com produtos para processar
-  const hasRealContent = leftBlocks.some(block => block.products.length > 0) || 
-                         rightBlocks.some(block => block.products.length > 0);
-  
-  if (hasRealContent && dataRows.length > 0) {
-    // Adicionar linhas vazias para preencher a página até o final (como na imagem)
-    // Ajustado para 40 linhas em uma página A4 com linhas de 0.6cm
-    const totalRowsPerPage = 40;
-    const emptyRowsNeeded = totalRowsPerPage - (dataRows.length + 1); // +1 para o cabeçalho
+    currentPageRows++;
     
-    if (emptyRowsNeeded > 0) {
-      // Adicionar linhas vazias para preencher a página
+    // Verificar quantos produtos podem caber nesta página
+    const availableRows = ROWS_PER_PAGE - currentPageRows - 1; // -1 para o cabeçalho da tabela
+    const productsForThisPage = block.products.slice(0, availableRows);
+    const remainingProducts = block.products.slice(availableRows);
+    
+    // Criar tabela para os produtos desta página
+    const tableRows = [
+      // Linha de cabeçalho
+      new TableRow({
+        tableHeader: true,
+        children: [
+          createTableCell("Produto", true),
+          createTableCell("CE", true),
+          createTableCell("MG", true),
+          createTableCell("TB", true),
+          createTableCell("IM", true),
+        ]
+      })
+    ];
+    
+    // Adicionar linhas para os produtos
+    for (const product of productsForThisPage) {
+      const values = product.values;
+      
+      // Obter valores para as colunas
+      const ce = values[0] !== null ? values[0].toString() : "";
+      const mg = values[1] !== null ? values[1].toString() : "";
+      const tb = values[2] !== null ? values[2].toString() : "";
+      const im = values[3] !== null ? values[3].toString() : "";
+      
+      // Verificar se precisa destacar TB ou IM
+      const highlightTB = tb ? "yellow" : undefined;
+      const highlightIM = im ? "green" : undefined;
+      
+      tableRows.push(
+        new TableRow({
+          children: [
+            createTableCell(product.name),
+            createTableCell(ce),
+            createTableCell(mg),
+            createTableCell(tb, false, highlightTB),
+            createTableCell(im, false, highlightIM),
+          ]
+        })
+      );
+    }
+    
+    // Criar e adicionar a tabela
+    const table = new Table({
+      width: { size: 100, type: WidthType.PERCENTAGE },
+      borders: {
+        top: { style: BorderStyle.SINGLE, size: 1 },
+        bottom: { style: BorderStyle.SINGLE, size: 1 },
+        left: { style: BorderStyle.SINGLE, size: 1 },
+        right: { style: BorderStyle.SINGLE, size: 1 },
+        insideHorizontal: { style: BorderStyle.SINGLE, size: 1 },
+        insideVertical: { style: BorderStyle.SINGLE, size: 1 },
+      },
+      rows: tableRows
+    });
+    
+    documentElements.push(table);
+    currentPageRows += 1 + productsForThisPage.length; // Cabeçalho + produtos
+    
+    // Processar produtos restantes em novas páginas, se necessário
+    if (remainingProducts.length > 0) {
+      // Completar exatamente 50 linhas na página atual
+      const emptyRowsNeeded = ROWS_PER_PAGE - currentPageRows;
       for (let i = 0; i < emptyRowsNeeded; i++) {
-        dataRows.push(
-          new TableRow({
-            height: {
-              value: options.rowHeight,
-              rule: HeightRule.EXACT
-            },
-            children: [
-              createTableCell('', options, { width: options.nameColumnWidth }),
-              createTableCell('', options, { width: options.columnWidth }),
-              createTableCell('', options, { width: options.columnWidth }),
-              createTableCell('', options, { width: options.columnWidth }),
-              createTableCell('', options, { width: options.columnWidth }),
-              createTableCell('', options, { width: options.nameColumnWidth }),
-              createTableCell('', options, { width: options.columnWidth }),
-              createTableCell('', options, { width: options.columnWidth }),
-              createTableCell('', options, { width: options.columnWidth }),
-              createTableCell('', options, { width: options.columnWidth }),
-            ],
+        documentElements.push(new Paragraph({ text: " " }));
+      }
+      
+      // Quebra de página
+      documentElements.push(new Paragraph({ pageBreakBefore: true }));
+      currentPageRows = 0;
+      
+      // Processar os produtos restantes em novas páginas
+      let processedCount = 0;
+      while (processedCount < remainingProducts.length) {
+        // Adicionar cabeçalho de continuação
+        documentElements.push(
+          new Paragraph({
+            text: `${block.name} (continuação)`,
+            heading: HeadingLevel.HEADING_2,
+            spacing: { before: 200, after: 100 }
           })
         );
-      }
-    }
-  }
-  
-  // Só criar a tabela se houver dados reais para exibir e se tiver linhas de dados
-  if (hasRealContent && dataRows.length > 0) {
-    return new Table({
-      width: {
-        size: 120,  // Setting to 120% as requested
-        type: WidthType.PERCENTAGE,
-      },
-      alignment: AlignmentType.CENTER, // Centralizado conforme a imagem
-      rows: [headerRow, ...dataRows],
-    });
-  }
-  
-  // Se não houver conteúdo real, retorna null para que a seção não seja criada
-  return null as any;
-}
-
-function processBlocksToRows(blocks: DataBlock[]) {
-  const rows: { name: string, ce: string, mg: string, tb: string, im: string }[] = [];
-  
-  blocks.forEach((block, blockIndex) => {
-    if (block.products.length === 0) return;
-    
-    // Verifica se este bloco é a seção TOTAL
-    const isTotal = block.name === "TOTAL";
-    
-    if (isTotal) {
-      // Para a seção TOTAL, a palavra "TOTAL" deve ir centralizada nas colunas de valor
-      // Isso será tratado na hora de renderizar, aqui apenas marcamos com um valor especial
-      rows.push({
-        name: "TOTAL",
-        ce: "TOTAL_MARKER", // Marcador especial para identificar linha de TOTAL
-        mg: "",
-        tb: "",
-        im: ""
-      });
-    } else {
-      // Add the client name first (caso normal para blocos que não são TOTAL)
-      rows.push({
-        name: block.name,
-        ce: '',
-        mg: '',
-        tb: '',
-        im: ''
-      });
-    }
-    
-    // Add product rows
-    block.products.forEach(product => {
-      // Only add products that have values in columns C-F
-      if (product.values.some(v => v !== null && v !== 0)) {
-        rows.push({
-          name: product.name,
-          ce: product.values[0] ? String(product.values[0]).padStart(2, '0') : '',
-          mg: product.values[1] ? String(product.values[1]).padStart(2, '0') : '',
-          tb: product.values[2] ? String(product.values[2]).padStart(2, '0') : '',
-          im: product.values[3] ? String(product.values[3]).padStart(2, '0') : ''
+        currentPageRows++;
+        
+        // Calcular produtos para esta página
+        const maxProductsOnThisPage = ROWS_PER_PAGE - currentPageRows - 1; // -1 para o cabeçalho
+        const productsOnThisPage = remainingProducts.slice(
+          processedCount,
+          processedCount + maxProductsOnThisPage
+        );
+        
+        // Criar tabela para continuação
+        const continueTableRows = [
+          // Linha de cabeçalho
+          new TableRow({
+            tableHeader: true,
+            children: [
+              createTableCell("Produto", true),
+              createTableCell("CE", true),
+              createTableCell("MG", true),
+              createTableCell("TB", true),
+              createTableCell("IM", true),
+            ]
+          })
+        ];
+        
+        // Adicionar linhas para os produtos
+        for (const product of productsOnThisPage) {
+          const values = product.values;
+          
+          // Obter valores para as colunas
+          const ce = values[0] !== null ? values[0].toString() : "";
+          const mg = values[1] !== null ? values[1].toString() : "";
+          const tb = values[2] !== null ? values[2].toString() : "";
+          const im = values[3] !== null ? values[3].toString() : "";
+          
+          // Verificar se precisa destacar TB ou IM
+          const highlightTB = tb ? "yellow" : undefined;
+          const highlightIM = im ? "green" : undefined;
+          
+          continueTableRows.push(
+            new TableRow({
+              children: [
+                createTableCell(product.name),
+                createTableCell(ce),
+                createTableCell(mg),
+                createTableCell(tb, false, highlightTB),
+                createTableCell(im, false, highlightIM),
+              ]
+            })
+          );
+        }
+        
+        // Criar e adicionar tabela de continuação
+        const continueTable = new Table({
+          width: { size: 100, type: WidthType.PERCENTAGE },
+          borders: {
+            top: { style: BorderStyle.SINGLE, size: 1 },
+            bottom: { style: BorderStyle.SINGLE, size: 1 },
+            left: { style: BorderStyle.SINGLE, size: 1 },
+            right: { style: BorderStyle.SINGLE, size: 1 },
+            insideHorizontal: { style: BorderStyle.SINGLE, size: 1 },
+            insideVertical: { style: BorderStyle.SINGLE, size: 1 },
+          },
+          rows: continueTableRows
         });
+        
+        documentElements.push(continueTable);
+        currentPageRows += 1 + productsOnThisPage.length;
+        
+        // Atualizar contador de produtos processados
+        processedCount += productsOnThisPage.length;
+        
+        // Se ainda houver produtos a processar, adicionar nova página
+        if (processedCount < remainingProducts.length) {
+          // Completar exatamente 50 linhas
+          const emptyRowsNeeded = ROWS_PER_PAGE - currentPageRows;
+          for (let i = 0; i < emptyRowsNeeded; i++) {
+            documentElements.push(new Paragraph({ text: " " }));
+          }
+          
+          // Quebra de página
+          documentElements.push(new Paragraph({ pageBreakBefore: true }));
+          currentPageRows = 0;
+        }
       }
-    });
-    
-    // Add empty row after each block (except the last one)
-    if (blockIndex < blocks.length - 1) {
-      rows.push({
-        name: '',
-        ce: '',
-        mg: '',
-        tb: '',
-        im: ''
-      });
     }
-  });
+  }
   
-  return rows;
-}
-
-function createTableCell(text: string, options: {
-  fontName: string;
-  fontSize: number;
-}, cellOptions: TableCellOptions) {
-  // Ensure that bold is properly typed as boolean or undefined
-  const isBold: boolean | undefined = 
-    cellOptions.isHeader === true ? true : 
-    cellOptions.bold === true ? true : 
-    cellOptions.bold === false ? false : 
-    undefined;
+  // Adicionar seção TOTAL
+  // Verificar se precisa de nova página
+  if (currentPageRows + 4 > ROWS_PER_PAGE) { // 4 linhas para título + tabela simples
+    // Completar exatamente 50 linhas
+    const emptyRowsNeeded = ROWS_PER_PAGE - currentPageRows;
+    for (let i = 0; i < emptyRowsNeeded; i++) {
+      documentElements.push(new Paragraph({ text: " " }));
+    }
+    
+    // Quebra de página
+    documentElements.push(new Paragraph({ pageBreakBefore: true }));
+    currentPageRows = 0;
+  }
   
-  // Determine if text should be left-aligned
-  const shouldAlignLeft = cellOptions.alignLeft || 
-    (!cellOptions.isHeader && text !== '' && (isNaN(Number(text)) || text.trim() === ''));
+  // Adicionar título TOTAL
+  documentElements.push(
+    new Paragraph({
+      text: "TOTAL",
+      heading: HeadingLevel.HEADING_1,
+      spacing: { before: 400, after: 200 }
+    })
+  );
+  currentPageRows++;
   
-  // Configuração da célula
-  const tableCellConfig: any = {
-    width: {
-      size: cellOptions.width || 1000,
-      type: WidthType.DXA,
-    },
+  // Criar tabela para a seção TOTAL
+  let totalTableRows;
+  
+  if (totalProducts && totalProducts.length > 0) {
+    // Cabeçalho da tabela
+    totalTableRows = [
+      new TableRow({
+        tableHeader: true,
+        children: [
+          createTableCell("Produto", true),
+          createTableCell("Quantidade", true),
+        ]
+      })
+    ];
+    
+    // Linhas para cada produto total
+    for (const product of totalProducts) {
+      const quantity = product.values[0] !== null ? product.values[0].toString() : "0";
+      
+      totalTableRows.push(
+        new TableRow({
+          children: [
+            createTableCell(product.name),
+            createTableCell(quantity),
+          ]
+        })
+      );
+    }
+  } else {
+    // Se não houver produtos totais, criar uma tabela simples
+    totalTableRows = [
+      new TableRow({
+        children: [
+          createTableCell("Total Geral", true),
+          createTableCell("0"),
+        ]
+      })
+    ];
+  }
+  
+  // Criar e adicionar tabela de totais
+  const totalTable = new Table({
+    width: { size: 70, type: WidthType.PERCENTAGE },
     borders: {
       top: { style: BorderStyle.SINGLE, size: 1 },
       bottom: { style: BorderStyle.SINGLE, size: 1 },
       left: { style: BorderStyle.SINGLE, size: 1 },
       right: { style: BorderStyle.SINGLE, size: 1 },
+      insideHorizontal: { style: BorderStyle.SINGLE, size: 1 },
+      insideVertical: { style: BorderStyle.SINGLE, size: 1 },
     },
+    rows: totalTableRows
+  });
+  
+  documentElements.push(totalTable);
+  currentPageRows += totalTableRows.length;
+  
+  // Completar a última página com exatamente 50 linhas
+  const finalEmptyRowsNeeded = ROWS_PER_PAGE - currentPageRows;
+  if (finalEmptyRowsNeeded > 0) {
+    for (let i = 0; i < finalEmptyRowsNeeded; i++) {
+      documentElements.push(new Paragraph({ text: " " }));
+    }
+  }
+  
+  // Criar o documento com as margens específicas
+  const doc = new Document({
+    sections: [
+      {
+        properties: {
+          page: {
+            margin: {
+              top: convertInchesToTwip(2.0 / 2.54), // 2.0 cm convertido para polegadas e depois twips
+              right: convertInchesToTwip(2.5 / 2.54), // 2.5 cm
+              bottom: convertInchesToTwip(2.0 / 2.54), // 2.0 cm
+              left: convertInchesToTwip(2.5 / 2.54), // 2.5 cm
+            },
+          },
+        },
+        children: documentElements,
+      },
+    ],
+  });
+  
+  // Gerar e salvar o documento
+  try {
+    const blob = await Packer.toBlob(doc);
+    saveAs(blob, `Lista_Entrega_${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.docx`);
+  } catch (error) {
+    console.error("Erro ao gerar documento Word:", error);
+    throw new Error("Falha ao gerar o documento Word.");
+  }
+}
+
+// Função auxiliar para criar células da tabela
+function createTableCell(text: string, isHeader: boolean = false, highlight?: string) {
+  return new TableCell({
     children: [
       new Paragraph({
-        alignment: shouldAlignLeft ? AlignmentType.LEFT : AlignmentType.CENTER,
         children: [
           new TextRun({
             text: text,
-            font: options.fontName,
-            size: options.fontSize,
-            bold: isBold,
-            highlight: cellOptions.highlight,
+            bold: isHeader,
+            highlight: highlight as any, // Conversão necessária para compatibilidade
           }),
         ],
       }),
     ],
-  };
-  
-  // Adicionar colspan se especificado
-  if (cellOptions.colSpan && cellOptions.colSpan > 1) {
-    tableCellConfig.columnSpan = cellOptions.colSpan;
-  }
-  
-  return new TableCell(tableCellConfig);
+    shading: isHeader ? { fill: "F2F2F2" } : undefined,
+  });
 }
