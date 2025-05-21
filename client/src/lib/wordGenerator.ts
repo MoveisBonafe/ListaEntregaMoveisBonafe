@@ -76,8 +76,8 @@ function createDocumentSections(blocks: DataBlock[], options: {
   totalProducts?: ProductData[];
 }): DocSection[] {
   const sections: DocSection[] = [];
-  // Exatamente 50 linhas por página conforme solicitado pelo cliente
-  const maxRowsPerSide = 25; // 25 linhas por lado = 50 linhas no total por página
+  // Exatamente 50 linhas de cada lado conforme solicitado pelo cliente
+  const maxRowsPerSide = 50; // 50 linhas por lado = 100 linhas no total por página
   const blocksWithProducts = blocks.filter(block => block.products.length > 0);
   
   // Organiza os blocos em páginas
