@@ -39,7 +39,23 @@ export async function generateWordDocument(excelData: ExcelData): Promise<void> 
   
   // Create the document with table settings
   const doc = new Document({
-    sections: sections,
+    sections: sections.map(section => ({
+      ...section,
+      properties: {
+        ...section.properties,
+        // Definindo margens exatas:
+        // 2,0 cm para margens superior e inferior (1134 twips = 2cm)
+        // 2,5 cm para margens esquerda e direita (1417 twips = 2.5cm)
+        page: {
+          margin: {
+            top: 1134,
+            bottom: 1134,
+            left: 1417,
+            right: 1417,
+          }
+        }
+      }
+    })),
     styles: {
       paragraphStyles: [
         {
