@@ -1,64 +1,40 @@
-// Configuration for document generation
-export interface Config {
-  limitRowsPerPage: boolean;
-  highlightColumns: 'all' | 'tb' | 'im' | 'none';
-}
-
-// Customer data model
-export interface Customer {
-  id: string;
-  name: string;
-  address: string;
-  city: string;
-}
-
-// Product data model
-export interface Product {
-  id: string;
-  customerId: string;
-  customerName: string;
-  name: string;
-  quantity: number;
-  code: string;
-  columns: string[];
-  tbColumn: string | null;
-  imColumn: string | null;
-}
-
-// Processed Excel data
 export interface ExcelData {
-  customers: Customer[];
-  products: Product[];
-  totalProducts: number;
-  tbColumnCount: number;
-  imColumnCount: number;
-  detail?: string;
+  fileName: string;
+  fileSize: number;
+  processedData: DataBlock[];
+  totalProducts?: ProductData[]; // Produtos da aba CARGA para seção TOTAL
 }
 
-// Processing step information
-export interface ProcessingStep {
+export interface DataBlock {
+  name: string;
+  products: ProductData[];
+}
+
+export interface ProductData {
+  name: string;
+  values: (number | null)[];
+}
+
+export interface WordPreviewRow {
   id: string;
-  label: string;
-  complete: boolean;
-  active: boolean;
-  detail?: string;
-}
-
-// Processing result
-export interface ProcessingResult {
-  filename: string;
-  timestamp: string;
-  pageCount: number;
-  stats: {
-    customers: number;
-    products: number;
-    tbColumns: number;
-    imColumns: number;
+  leftSide: {
+    name: string;
+    ce: string;
+    mg: string;
+    tb: string;
+    im: string;
+  };
+  rightSide: {
+    name: string;
+    ce: string;
+    mg: string;
+    tb: string;
+    im: string;
   };
 }
 
-// Processing error
-export interface ProcessingError {
-  message: string;
-  details: string;
+export interface FormatOptions {
+  formatMode: 'strict' | 'flexible';
+  truncateText: boolean;
+  formatNumbers: boolean;
 }

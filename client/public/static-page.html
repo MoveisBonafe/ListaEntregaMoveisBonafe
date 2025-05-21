@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Móveis Bonafé - Lista de Entrega</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="icon" href="/images/delivery-truck.png" type="image/png">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: #f9f9f9;
+      color: #333;
+      line-height: 1.6;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+    
+    header {
+      padding: 1.5rem 0;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      border-bottom: 1px solid #f0f0f0;
+      margin-bottom: 2rem;
+    }
+    
+    .header-content {
+      text-align: center;
+    }
+    
+    .logo {
+      font-weight: bold;
+      text-transform: uppercase;
+      background: linear-gradient(to right, #000, #ffc107);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      font-size: 2rem;
+      letter-spacing: -0.5px;
+    }
+    
+    .divider {
+      height: 2px;
+      width: 100px;
+      background-color: #ffc107;
+      margin: 0.5rem auto 0.25rem;
+    }
+    
+    .tagline {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      font-weight: 500;
+      color: #000;
+    }
+    
+    main {
+      padding: 2rem 0;
+    }
+    
+    .card {
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+      padding: 2rem;
+      margin-bottom: 2rem;
+      text-align: center;
+    }
+    
+    h1 {
+      font-size: 1.8rem;
+      margin-bottom: 1rem;
+      color: #333;
+    }
+    
+    h2 {
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+      color: #333;
+    }
+    
+    p {
+      color: #666;
+      margin-bottom: 1rem;
+    }
+    
+    .features {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 2rem;
+      margin: 2rem 0;
+    }
+    
+    .feature {
+      flex: 1;
+      min-width: 250px;
+      max-width: 350px;
+      padding: 1.5rem;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+      text-align: center;
+    }
+    
+    .feature-icon {
+      width: 60px;
+      height: 60px;
+      background-color: #fff8e1;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 1rem;
+      color: #ffc107;
+      font-size: 1.5rem;
+    }
+    
+    .button {
+      display: inline-block;
+      background-color: #ffc107;
+      color: #000;
+      padding: 0.75rem 1.5rem;
+      border-radius: 4px;
+      text-decoration: none;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      margin-top: 1rem;
+    }
+    
+    .button:hover {
+      background-color: #ffb300;
+      transform: translateY(-2px);
+    }
+    
+    footer {
+      background-color: #f5f5f5;
+      padding: 2rem 0;
+      text-align: center;
+      color: #666;
+      font-size: 0.875rem;
+      margin-top: 2rem;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <div class="header-content">
+        <h1 class="logo">MÓVEIS BONAFÉ</h1>
+        <div class="divider"></div>
+        <span class="tagline">Lista de Entrega</span>
+      </div>
+    </div>
+  </header>
+  
+  <main>
+    <div class="container">
+      <div class="card">
+        <h1>Gerador de Lista de Entrega</h1>
+        <p>Simplifique a criação de documentos de lista de entrega a partir de planilhas Excel.</p>
+        <p>Utilize esta ferramenta para converter seus dados de forma rápida e precisa em documentos Word formatados profissionalmente.</p>
+        <a href="/" class="button">Acessar Aplicativo</a>
+      </div>
+      
+      <h2 style="text-align: center; margin-top: 3rem;">Funcionalidades</h2>
+      
+      <div class="features">
+        <div class="feature">
+          <div class="feature-icon">📊</div>
+          <h3>Processamento de Excel</h3>
+          <p>Importação direta de planilhas Excel com reconhecimento automático de dados.</p>
+        </div>
+        
+        <div class="feature">
+          <div class="feature-icon">🔤</div>
+          <h3>Ordenação Alfabética</h3>
+          <p>Organização automática dos produtos em ordem alfabética dentro de cada bloco de cliente.</p>
+        </div>
+        
+        <div class="feature">
+          <div class="feature-icon">📝</div>
+          <h3>Formatação Especial</h3>
+          <p>Destaque em amarelo para colunas TB e destaque em verde para colunas IM conforme necessário.</p>
+        </div>
+      </div>
+      
+      <div class="card">
+        <h2>Especificações Técnicas</h2>
+        <p>✓ Altura de linha padronizada: 0,5cm</p>
+        <p>✓ Capacidade: 48 linhas por página</p>
+        <p>✓ Formatação especial para colunas TB e IM</p>
+        <p>✓ Inclusão de seção TOTAL após blocos de clientes</p>
+        <p>✓ Download direto do documento Word pronto para impressão</p>
+      </div>
+    </div>
+  </main>
+  
+  <footer>
+    <div class="container">
+      <p>&copy; 2025 Móveis Bonafé. Todos os direitos reservados.</p>
+    </div>
+  </footer>
+</body>
+</html>

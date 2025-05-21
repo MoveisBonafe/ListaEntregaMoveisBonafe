@@ -1,202 +1,209 @@
-import React, { useState, useRef, useCallback } from 'react';
-import { Upload, X, FileIcon } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useToast } from '@/hooks/use-toast';
-import { Config } from '@/types';
+import { useState, useRef } from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { FileUpIcon, XIcon, AlertCircleIcon } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Progress } from "@/components/ui/progress";
+import { formatFileSize } from "@/utils/helpers";
+import { processExcelFile } from "@/lib/excelProcessor";
+import { ExcelData } from "@/types";
 
 interface FileUploadProps {
-  onFileSelected: (file: File, config: Config) => void;
-  onReset: () => void;
+  onFileProcessed: (data: ExcelData) => void;
+  onProcessingStart: () => void;
+  onProcessingComplete: () => void;
+  updateProgress: (progress: number) => void;
 }
 
-const FileUpload: React.FC<FileUploadProps> = ({ onFileSelected, onReset }) => {
-  const [file, setFile] = useState<File | null>(null);
+export default function FileUpload({
+  onFileProcessed,
+  onProcessingStart,
+  onProcessingComplete,
+  updateProgress,
+}: FileUploadProps) {
   const [isDragging, setIsDragging] = useState(false);
-  const [config, setConfig] = useState<Config>({
-    limitRowsPerPage: true,
-    highlightColumns: 'all'
-  });
-  
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [progress, setProgress] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
-  const formatFileSize = (bytes: number): string => {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
   };
 
-  const handleFileSelect = (selectedFile: File | null) => {
-    if (!selectedFile) return;
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
     
-    if (!selectedFile.name.endsWith('.xlsx')) {
+    const files = e.dataTransfer.files;
+    if (files.length) {
+      handleFile(files[0]);
+    }
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      handleFile(e.target.files[0]);
+    }
+  };
+
+  const handleFile = async (file: File) => {
+    // Validate file type
+    if (!file.name.endsWith('.xlsx')) {
+      setError('Apenas arquivos Excel (.xlsx) são permitidos.');
       toast({
-        title: "Formato de arquivo inválido",
-        description: "Por favor, selecione um arquivo Excel (.xlsx)",
-        variant: "destructive"
+        variant: "destructive",
+        title: "Tipo de arquivo inválido",
+        description: "Apenas arquivos Excel (.xlsx) são permitidos.",
       });
       return;
     }
-    
-    setFile(selectedFile);
-  };
 
-  const handleDrop = useCallback((e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    setIsDragging(false);
+    setSelectedFile(file);
+    setError(null);
+    setIsProcessing(true);
+    onProcessingStart();
     
-    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      handleFileSelect(e.dataTransfer.files[0]);
+    try {
+      // Simulate progress for visual feedback
+      let currentProgress = 0;
+      const interval = setInterval(() => {
+        currentProgress += 5;
+        if (currentProgress > 90) clearInterval(interval);
+        setProgress(currentProgress);
+        updateProgress(currentProgress);
+      }, 100);
+
+      // Process the Excel file
+      const data = await processExcelFile(file);
+      
+      clearInterval(interval);
+      setProgress(100);
+      updateProgress(100);
+      
+      setTimeout(() => {
+        setIsProcessing(false);
+        onProcessingComplete();
+        onFileProcessed(data);
+      }, 500);
+      
+      toast({
+        title: "Arquivo processado com sucesso",
+        description: "Os dados foram extraídos e estão prontos para visualização.",
+      });
+    } catch (err) {
+      setIsProcessing(false);
+      setProgress(0);
+      updateProgress(0);
+      setError(err instanceof Error ? err.message : 'Erro ao processar o arquivo.');
+      toast({
+        variant: "destructive",
+        title: "Erro de processamento",
+        description: err instanceof Error ? err.message : 'Erro ao processar o arquivo.',
+      });
     }
-  }, []);
-
-  const handleDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    setIsDragging(true);
-  }, []);
-
-  const handleDragLeave = useCallback(() => {
-    setIsDragging(false);
-  }, []);
-
-  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = e.target.files ? e.target.files[0] : null;
-    handleFileSelect(selectedFile);
   };
 
-  const handleRemoveFile = () => {
-    setFile(null);
+  const removeFile = () => {
+    setSelectedFile(null);
+    setError(null);
+    setIsProcessing(false);
+    setProgress(0);
+    updateProgress(0);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
   };
 
-  const handleProcess = () => {
-    if (file) {
-      onFileSelected(file, config);
-    }
-  };
-
-  const handleReset = () => {
-    handleRemoveFile();
-    onReset();
+  const openFileDialog = () => {
+    fileInputRef.current?.click();
   };
 
   return (
-    <div className="max-w-4xl mx-auto bg-white border border-slate-200 rounded-xl shadow-sm p-6 mb-8">
-      <h3 className="text-lg font-semibold text-slate-800 mb-4">Selecionar Arquivo Excel</h3>
-      
-      {/* Drop zone for file upload */}
-      <div 
-        className={`drop-zone rounded-lg p-8 mb-4 flex flex-col items-center justify-center text-center cursor-pointer ${isDragging ? 'active' : ''}`}
-        onClick={() => fileInputRef.current?.click()}
-        onDrop={handleDrop}
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-      >
-        <Upload className="h-12 w-12 text-primary mb-4" />
+    <Card>
+      <CardContent className="p-6">
+        <h3 className="text-lg font-semibold mb-4">Upload de Arquivo</h3>
         
-        <p className="text-slate-800 font-medium mb-1">Arraste seu arquivo Excel aqui ou clique para selecionar</p>
-        <p className="text-sm text-slate-500 mb-3">Suporta arquivos .xlsx</p>
-        <p className="text-xs text-slate-400">O arquivo deve conter as abas "LISTA POR PEDIDO" e "CARGA"</p>
-        
-        <input 
-          type="file" 
-          ref={fileInputRef}
-          className="hidden" 
-          accept=".xlsx" 
-          onChange={handleFileInputChange}
-        />
-      </div>
-      
-      {/* File info area - shown when file is selected */}
-      {file && (
-        <div className="border border-slate-200 rounded-lg p-4 mb-4">
-          <div className="flex items-start justify-between">
-            <div className="flex items-center">
-              <div className="w-10 h-10 rounded-lg bg-green-50 flex items-center justify-center mr-3">
-                <FileIcon className="h-5 w-5 text-green-600" />
-              </div>
-              <div>
-                <p className="font-medium text-slate-800">{file.name}</p>
-                <p className="text-sm text-slate-500">{formatFileSize(file.size)}</p>
-              </div>
-            </div>
-            
-            <button 
-              className="text-slate-400 hover:text-slate-600"
-              onClick={handleRemoveFile}
-              aria-label="Remover arquivo"
-            >
-              <X className="h-5 w-5" />
-            </button>
-          </div>
-        </div>
-      )}
-      
-      {/* Configuration options */}
-      <div className="border border-slate-200 rounded-lg p-4 mb-6">
-        <h4 className="font-medium text-slate-800 mb-3">Configurações</h4>
-        <div className="mb-4">
-          <div className="flex items-center space-x-2">
-            <Checkbox 
-              id="limitRows" 
-              checked={config.limitRowsPerPage}
-              onCheckedChange={(checked) => 
-                setConfig(prev => ({ ...prev, limitRowsPerPage: checked as boolean }))
-              }
-            />
-            <Label htmlFor="limitRows" className="text-sm text-slate-700 cursor-pointer">
-              Limitar 50 linhas por página
-            </Label>
-          </div>
-          <p className="text-xs text-slate-500 mt-1 ml-6">Cada página gerada terá exatamente 50 linhas, incluindo a primeira página</p>
-        </div>
-        
-        <div>
-          <Label htmlFor="highlightOption" className="block text-sm font-medium text-slate-700 mb-1">
-            Destaque de colunas
-          </Label>
-          <Select 
-            value={config.highlightColumns}
-            onValueChange={(value) => 
-              setConfig(prev => ({ ...prev, highlightColumns: value as 'all' | 'tb' | 'im' | 'none' }))
-            }
-          >
-            <SelectTrigger id="highlightOption" className="max-w-xs">
-              <SelectValue placeholder="Selecione uma opção" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">TB (amarelo) e IM (verde)</SelectItem>
-              <SelectItem value="tb">Somente TB (amarelo)</SelectItem>
-              <SelectItem value="im">Somente IM (verde)</SelectItem>
-              <SelectItem value="none">Sem destaques</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-      
-      <div className="flex flex-col sm:flex-row gap-3 justify-end">
-        <Button 
-          variant="outline"
-          onClick={handleReset}
+        <div
+          className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition duration-200 ${
+            isDragging 
+              ? 'border-primary bg-primary/10' 
+              : 'border-gray-300 hover:bg-gray-50'
+          }`}
+          onDragEnter={handleDragEnter}
+          onDragLeave={handleDragLeave}
+          onDragOver={handleDragOver}
+          onDrop={handleDrop}
+          onClick={openFileDialog}
         >
-          Limpar
-        </Button>
-        <Button 
-          disabled={!file}
-          onClick={handleProcess}
-        >
-          Processar
-        </Button>
-      </div>
-    </div>
-  );
-};
+          <FileUpIcon className="h-10 w-10 text-gray-400 mx-auto mb-2" />
+          <p className="text-gray-600 font-medium">Arraste e solte sua planilha Excel aqui</p>
+          <p className="text-sm text-gray-500 mb-4">ou clique para selecionar o arquivo</p>
+          <input 
+            type="file" 
+            ref={fileInputRef}
+            accept=".xlsx" 
+            className="sr-only"
+            onChange={handleFileSelect} 
+          />
+          <Button className="mx-auto flex items-center">
+            <FileUpIcon className="h-4 w-4 mr-2" />
+            Selecionar arquivo
+          </Button>
+        </div>
 
-export default FileUpload;
+        {selectedFile && (
+          <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+            <div className="flex items-start">
+              <div className="flex-1">
+                <p className="font-medium">{selectedFile.name}</p>
+                <p className="text-sm text-gray-500">{formatFileSize(selectedFile.size)}</p>
+              </div>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={removeFile} 
+                className="text-gray-500 hover:text-red-500"
+              >
+                <XIcon className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        )}
+        
+        {isProcessing && (
+          <div className="mt-4">
+            <Progress value={progress} className="h-2 w-full" />
+            <p className="text-sm text-gray-600 mt-2">Processando arquivo...</p>
+          </div>
+        )}
+        
+        {error && (
+          <Alert variant="destructive" className="mt-4">
+            <AlertCircleIcon className="h-4 w-4" />
+            <AlertDescription>
+              {error}
+            </AlertDescription>
+          </Alert>
+        )}
+      </CardContent>
+    </Card>
+  );
+}

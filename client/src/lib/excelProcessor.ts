@@ -1,196 +1,156 @@
 import * as XLSX from 'xlsx';
-import { ExcelData, Customer, Product } from '@/types';
+import { ExcelData, DataBlock, ProductData } from '@/types';
 
-// Function to read and process Excel file
-export async function processExcelFile(
-  file: File, 
-  updateStepDetail: (detail: string) => void
-): Promise<ExcelData> {
+export async function processExcelFile(file: File): Promise<ExcelData> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     
     reader.onload = (e) => {
       try {
-        if (!e.target?.result) {
-          throw new Error('Failed to read file');
-        }
-        
-        const data = new Uint8Array(e.target.result as ArrayBuffer);
+        const data = new Uint8Array(e.target?.result as ArrayBuffer);
         const workbook = XLSX.read(data, { type: 'array' });
         
-        // Check if required sheets exist
-        const requiredSheets = ['LISTA POR PEDIDO', 'CARGA'];
-        const sheetNames = workbook.SheetNames;
+        // Look for the specific sheets "LISTA POR PEDIDO" and "CARGA"
+        const orderSheetName = "LISTA POR PEDIDO";
+        const totalSheetName = "CARGA";
         
-        const missingSheets = requiredSheets.filter(sheet => !sheetNames.includes(sheet));
-        if (missingSheets.length > 0) {
-          throw new Error(`Required sheets not found: ${missingSheets.join(', ')}`);
+        if (!workbook.SheetNames.includes(orderSheetName)) {
+          reject(new Error(`A planilha não contém uma aba chamada "${orderSheetName}"`));
+          return;
         }
         
-        updateStepDetail(`Abas "LISTA POR PEDIDO" e "CARGA" encontradas`);
+        const orderSheet = workbook.Sheets[orderSheetName];
+        const orderJsonData = XLSX.utils.sheet_to_json<any>(orderSheet, { header: 1 });
         
-        // Process "LISTA POR PEDIDO" sheet
-        const listaPorPedidoSheet = workbook.Sheets['LISTA POR PEDIDO'];
-        const listaPorPedidoData = XLSX.utils.sheet_to_json(listaPorPedidoSheet);
-        
-        if (listaPorPedidoData.length === 0) {
-          throw new Error('No data found in "LISTA POR PEDIDO" sheet');
+        if (orderJsonData.length < 2) {
+          reject(new Error("A planilha não contém dados suficientes"));
+          return;
         }
         
-        // Process "CARGA" sheet
-        const cargaSheet = workbook.Sheets['CARGA'];
-        const cargaData = XLSX.utils.sheet_to_json(cargaSheet);
+        // Process the data from LISTA POR PEDIDO
+        const processedData = processData(orderJsonData);
         
-        if (cargaData.length === 0) {
-          throw new Error('No data found in "CARGA" sheet');
+        // Check if CARGA sheet exists and process it
+        let totalProducts: ProductData[] = [];
+        if (workbook.SheetNames.includes(totalSheetName)) {
+          const totalSheet = workbook.Sheets[totalSheetName];
+          const totalJsonData = XLSX.utils.sheet_to_json<any>(totalSheet, { header: 1 });
+          
+          if (totalJsonData.length >= 2) {
+            totalProducts = processTotalData(totalJsonData);
+          }
         }
         
-        // Extract customers from the data
-        const customers: Customer[] = extractCustomers(cargaData);
-        
-        // Extract and sort products
-        const products: Product[] = extractAndSortProducts(listaPorPedidoData, customers);
-        
-        // Return processed data
         resolve({
-          customers,
-          products,
-          totalProducts: products.length,
-          tbColumnCount: countSpecialColumns(products, 'TB'),
-          imColumnCount: countSpecialColumns(products, 'IM')
+          fileName: file.name,
+          fileSize: file.size,
+          processedData,
+          totalProducts
         });
       } catch (error) {
-        reject(error);
+        reject(new Error("Erro ao processar o arquivo Excel. Verifique se o formato está correto."));
       }
     };
     
     reader.onerror = () => {
-      reject(new Error('Error reading file'));
+      reject(new Error("Erro ao ler o arquivo"));
     };
     
     reader.readAsArrayBuffer(file);
   });
 }
 
-// Extract customer information from CARGA sheet
-function extractCustomers(cargaData: any[]): Customer[] {
-  const customers: Customer[] = [];
-  const customerMap = new Map<string, Customer>();
+function processData(jsonData: any[][]): DataBlock[] {
+  const blocks: DataBlock[] = [];
+  let currentBlock: DataBlock | null = null;
   
-  cargaData.forEach((row, index) => {
-    // Assuming customer code is in a field like 'CODIGO' or 'COD_CLIENTE'
-    const customerId = row['CODIGO'] || row['COD_CLIENTE'] || row['CLIENTE_ID'] || `cliente_${index}`;
-    const customerName = row['NOME'] || row['CLIENTE'] || row['RAZAO_SOCIAL'] || `Cliente ${index}`;
+  // Start from row 2 (index 1) as row 1 is headers
+  for (let i = 1; i < jsonData.length; i++) {
+    const row = jsonData[i];
     
-    if (!customerMap.has(customerId.toString())) {
-      const customer: Customer = {
-        id: customerId.toString(),
-        name: customerName.toString(),
-        address: (row['ENDERECO'] || '').toString(),
-        city: (row['CIDADE'] || '').toString()
-      };
+    if (!row || !row[0]) continue; // Skip empty rows
+    
+    const name = row[0]?.toString().trim() || '';
+    const product = row[1]?.toString().trim() || '';
+    
+    // Check if we have values in columns C-F (indices 2-5)
+    const values = [
+      row[2] !== undefined ? Number(row[2]) : null,
+      row[3] !== undefined ? Number(row[3]) : null,
+      row[4] !== undefined ? Number(row[4]) : null,
+      row[5] !== undefined ? Number(row[5]) : null
+    ];
+    
+    // If we don't have any values in the required columns, skip this product
+    if (values.every(val => val === null || val === 0)) continue;
+    
+    // Check if this is a new name or continuing with products
+    if (currentBlock && currentBlock.name === name) {
+      // Add product to existing block
+      currentBlock.products.push({
+        name: product,
+        values
+      });
+    } else {
+      // Start a new block
+      if (currentBlock) {
+        blocks.push(currentBlock);
+      }
       
-      customerMap.set(customerId.toString(), customer);
-      customers.push(customer);
+      currentBlock = {
+        name,
+        products: [{
+          name: product,
+          values
+        }]
+      };
     }
+  }
+  
+  // Add the last block if it exists
+  if (currentBlock) {
+    blocks.push(currentBlock);
+  }
+  
+  // Ordenar produtos dentro de cada bloco em ordem alfabética
+  blocks.forEach(block => {
+    block.products.sort((a, b) => a.name.localeCompare(b.name));
   });
   
-  return customers;
+  return blocks;
 }
 
-// Extract and sort products by customer
-function extractAndSortProducts(pedidoData: any[], customers: Customer[]): Product[] {
-  const products: Product[] = [];
+function processTotalData(jsonData: any[][]): ProductData[] {
+  const products: ProductData[] = [];
   
-  // Map to group products by customer
-  const productsByCustomer = new Map<string, Product[]>();
+  // Start from row 2 (index 1) as row 1 is headers
+  for (let i = 1; i < jsonData.length; i++) {
+    const row = jsonData[i];
+    
+    if (!row || !row[0]) continue; // Skip empty rows
+    
+    const product = row[0]?.toString().trim() || '';
+    
+    // Check if we have values in columns B-E (indices 1-4)
+    const values = [
+      row[1] !== undefined ? Number(row[1]) : null,
+      row[2] !== undefined ? Number(row[2]) : null,
+      row[3] !== undefined ? Number(row[3]) : null,
+      row[4] !== undefined ? Number(row[4]) : null
+    ];
+    
+    // If we don't have any values in the required columns, skip this product
+    if (values.every(val => val === null || val === 0)) continue;
+    
+    // Add product to the list
+    products.push({
+      name: product,
+      values
+    });
+  }
   
-  pedidoData.forEach((row, index) => {
-    // Assuming customer ID is in a field like 'CLIENTE_ID' or 'COD_CLIENTE'
-    const customerId = row['CLIENTE_ID'] || row['COD_CLIENTE'] || row['CODIGO'] || '';
-    const customerName = row['CLIENTE'] || row['NOME_CLIENTE'] || row['RAZAO_SOCIAL'] || '';
-    
-    // Find matching customer or create a temporary one
-    let customer = customers.find(c => c.id === customerId.toString());
-    if (!customer && customers.length > 0) {
-      // If we can't find by ID, try to match by name
-      customer = customers.find(c => c.name.toLowerCase() === customerName.toString().toLowerCase());
-    }
-    
-    // If we still can't find, use the first customer or create a temporary one
-    if (!customer) {
-      customer = customers[0] || {
-        id: customerId.toString() || `temp_${index}`,
-        name: customerName.toString() || `Cliente Temporário`,
-        address: '',
-        city: ''
-      };
-    }
-    
-    // Extract product information
-    const product: Product = {
-      id: (row['PRODUTO_ID'] || row['COD_PRODUTO'] || index).toString(),
-      customerId: customer.id,
-      customerName: customer.name,
-      name: (row['PRODUTO'] || row['DESCRICAO'] || `Produto ${index}`).toString(),
-      quantity: Number(row['QUANTIDADE'] || row['QTD'] || 1),
-      code: (row['CODIGO_PRODUTO'] || row['COD'] || '').toString(),
-      columns: extractColumns(row),
-      tbColumn: findSpecialColumn(row, 'TB'),
-      imColumn: findSpecialColumn(row, 'IM')
-    };
-    
-    // Add product to the customer's group
-    if (!productsByCustomer.has(customer.id)) {
-      productsByCustomer.set(customer.id, []);
-    }
-    
-    productsByCustomer.get(customer.id)!.push(product);
-  });
-  
-  // Sort products alphabetically within each customer group
-  productsByCustomer.forEach((customerProducts) => {
-    customerProducts.sort((a, b) => a.name.localeCompare(b.name));
-    products.push(...customerProducts);
-  });
+  // Não ordenar alfabeticamente os produtos da aba CARGA,
+  // mantendo a ordem original como aparece na planilha Excel
   
   return products;
-}
-
-// Extract column data from a row
-function extractColumns(row: any): string[] {
-  const columns: string[] = [];
-  
-  // Extract all keys from the row that might represent columns
-  Object.keys(row).forEach(key => {
-    if (typeof row[key] === 'string' || typeof row[key] === 'number') {
-      columns.push(row[key].toString());
-    }
-  });
-  
-  return columns;
-}
-
-// Find special columns (TB or IM)
-function findSpecialColumn(row: any, type: 'TB' | 'IM'): string | null {
-  for (const key in row) {
-    // Look for keys containing TB or IM
-    if (key.includes(type) && row[key]) {
-      return row[key].toString();
-    }
-  }
-  
-  // Alternative: look for values containing TB or IM
-  for (const key in row) {
-    if (typeof row[key] === 'string' && row[key].includes(type)) {
-      return row[key].toString();
-    }
-  }
-  
-  return null;
-}
-
-// Count products with special columns
-function countSpecialColumns(products: Product[], type: 'TB' | 'IM'): number {
-  return products.filter(product => type === 'TB' ? product.tbColumn : product.imColumn).length;
 }
