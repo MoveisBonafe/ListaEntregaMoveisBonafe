@@ -76,8 +76,8 @@ function createDocumentSections(blocks: DataBlock[], options: {
   totalProducts?: ProductData[];
 }): DocSection[] {
   const sections: DocSection[] = [];
-  // Ajustado para exatamente 50 linhas por página conforme solicitado pelo cliente
-  const maxRowsPerSide = 50; // Exatamente 50 linhas por página, incluindo a primeira página
+  // Exatamente 50 linhas por página conforme solicitado pelo cliente
+  const maxRowsPerSide = 25; // 25 linhas por lado = 50 linhas no total por página
   const blocksWithProducts = blocks.filter(block => block.products.length > 0);
   
   // Organiza os blocos em páginas
@@ -216,6 +216,8 @@ function createPageTable(leftBlocks: DataBlock[], rightBlocks: DataBlock[], opti
   columnWidth: number;
   nameColumnWidth: number;
 }) {
+  // Garantir exatamente 50 linhas por página
+  const ROWS_PER_PAGE = 50;
   // Limitar texto a 27 caracteres para colunas de nomes
   const truncateNameText = (text: string): string => {
     return text.length > 27 ? text.substring(0, 27) : text;
