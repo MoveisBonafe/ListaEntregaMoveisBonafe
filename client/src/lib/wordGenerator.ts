@@ -727,7 +727,8 @@ function createTableCell(
   // Verificar se é um produto que precisa de destaque - aplicar negrito e realce amarelo
   const isAgulhaProduct = typeof text === 'string' && text.toLowerCase().includes('agulha');
   const isCadeiraAltaEstofada = typeof text === 'string' && text.toLowerCase().includes('cadeira alta estofada');
-  const needsHighlight = isAgulhaProduct || isCadeiraAltaEstofada;
+  const isKitParafusos = typeof text === 'string' && text.toLowerCase().includes('kit parafusos');
+  const needsHighlight = isAgulhaProduct || isCadeiraAltaEstofada || isKitParafusos;
   
   // Ensure that bold is properly typed as boolean or undefined
   const isBold: boolean | undefined =
