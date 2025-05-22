@@ -314,7 +314,7 @@ function createPageTable(
         isHeader: true,
         width: options.nameColumnWidth,
         bold: true,
-        alignLeft: true,
+        // Removendo alignLeft para que fique centralizado
       }),
       createTableCell("CE", options, {
         isHeader: true,

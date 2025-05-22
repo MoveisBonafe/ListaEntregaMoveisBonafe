@@ -23,6 +23,7 @@ export interface WordPreviewRow {
     mg: string;
     tb: string;
     im: string;
+    isAgulha?: boolean; // Flag para produtos Agulha
   };
   rightSide: {
     name: string;
@@ -30,6 +31,7 @@ export interface WordPreviewRow {
     mg: string;
     tb: string;
     im: string;
+    isAgulha?: boolean; // Flag para produtos Agulha
   };
 }
 
