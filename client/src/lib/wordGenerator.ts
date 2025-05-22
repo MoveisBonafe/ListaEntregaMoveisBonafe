@@ -383,6 +383,10 @@ function createPageTable(
       rightRow.name.length > 27
         ? rightRow.name.substring(0, 27)
         : rightRow.name;
+    
+    // Detectar se é um produto Agulha (para destaque em negrito e amarelo)
+    const isLeftAgulha = leftRow.isAgulha || leftName.toLowerCase().includes("agulha");
+    const isRightAgulha = rightRow.isAgulha || rightName.toLowerCase().includes("agulha");
 
     const isLeftNameRow = !!(
       leftRow.name &&
@@ -656,6 +660,7 @@ function processBlocksToRows(blocks: DataBlock[]) {
         mg: "",
         tb: "",
         im: "",
+        isAgulha: false,
       });
     } else {
       // Add the client name first (caso normal para blocos que não são TOTAL)
