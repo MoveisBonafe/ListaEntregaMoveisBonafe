@@ -365,6 +365,7 @@ function createPageTable(
       mg: "",
       tb: "",
       im: "",
+      isAgulha: false,
     };
     const rightRow = rightRowsWithoutFirst[i] || {
       name: "",
@@ -372,6 +373,7 @@ function createPageTable(
       mg: "",
       tb: "",
       im: "",
+      isAgulha: false,
     };
 
     // Truncar nomes para 27 caracteres
@@ -636,6 +638,7 @@ function processBlocksToRows(blocks: DataBlock[]) {
     mg: string;
     tb: string;
     im: string;
+    isAgulha?: boolean; // Adicionando propriedade para identificar produtos Agulha
   }[] = [];
 
   blocks.forEach((block, blockIndex) => {
@@ -669,6 +672,9 @@ function processBlocksToRows(blocks: DataBlock[]) {
     block.products.forEach((product) => {
       // Only add products that have values in columns C-F
       if (product.values.some((v) => v !== null && v !== 0)) {
+        // Verificar se é um produto "Agulha" para destacar
+        const isAgulha = product.name.toLowerCase().includes("agulha");
+        
         rows.push({
           name: product.name,
           ce: product.values[0]
@@ -683,6 +689,7 @@ function processBlocksToRows(blocks: DataBlock[]) {
           im: product.values[3]
             ? String(product.values[3]).padStart(2, "0")
             : "",
+          isAgulha: isAgulha, // Adicionar flag para produtos Agulha
         });
       }
     });
@@ -695,6 +702,7 @@ function processBlocksToRows(blocks: DataBlock[]) {
         mg: "",
         tb: "",
         im: "",
+        isAgulha: false,
       });
     }
   });
