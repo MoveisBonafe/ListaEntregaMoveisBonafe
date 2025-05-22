@@ -523,8 +523,9 @@ function createPageTable(
       rowChildren = [
         createTableCell(leftName, options, {
           width: options.nameColumnWidth,
-          bold: isLeftNameRow,
+          bold: isLeftNameRow || isLeftAgulha, // Negrito para nomes de cliente ou produtos Agulha
           alignLeft: true,
+          highlight: isLeftAgulha ? "yellow" : undefined, // Destaque amarelo para produtos Agulha
         }),
         createTableCell(leftRow.ce, options, {
           width: options.columnWidth,
