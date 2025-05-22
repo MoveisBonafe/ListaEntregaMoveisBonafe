@@ -86,11 +86,29 @@ function processData(jsonData: any[][]): DataBlock[] {
     
     // Check if this is a new name or continuing with products
     if (currentBlock && currentBlock.name === name) {
-      // Add product to existing block
-      currentBlock.products.push({
-        name: product,
-        values
-      });
+      // Check if product already exists in current block
+      const existingProduct = currentBlock.products.find(p => p.name === product);
+      
+      if (existingProduct) {
+        // Sum the values with existing product
+        for (let j = 0; j < values.length; j++) {
+          const newValue = values[j];
+          if (newValue !== null && newValue !== undefined) {
+            const existingValue = existingProduct.values[j];
+            if (existingValue === null || existingValue === undefined) {
+              existingProduct.values[j] = newValue;
+            } else {
+              existingProduct.values[j] = existingValue + newValue;
+            }
+          }
+        }
+      } else {
+        // Add new product to existing block
+        currentBlock.products.push({
+          name: product,
+          values
+        });
+      }
     } else {
       // Start a new block
       if (currentBlock) {
@@ -121,7 +139,7 @@ function processData(jsonData: any[][]): DataBlock[] {
 }
 
 function processTotalData(jsonData: any[][]): ProductData[] {
-  const products: ProductData[] = [];
+  const productMap = new Map<string, ProductData>();
   
   // Start from row 2 (index 1) as row 1 is headers
   for (let i = 1; i < jsonData.length; i++) {
@@ -142,15 +160,35 @@ function processTotalData(jsonData: any[][]): ProductData[] {
     // If we don't have any values in the required columns, skip this product
     if (values.every(val => val === null || val === 0)) continue;
     
-    // Add product to the list
-    products.push({
-      name: product,
-      values
-    });
+    // Check if product already exists
+    if (productMap.has(product)) {
+      const existingProduct = productMap.get(product)!;
+      // Sum the values with existing product
+      for (let j = 0; j < values.length; j++) {
+        const newValue = values[j];
+        if (newValue !== null && newValue !== undefined) {
+          const existingValue = existingProduct.values[j];
+          if (existingValue === null || existingValue === undefined) {
+            existingProduct.values[j] = newValue;
+          } else {
+            existingProduct.values[j] = existingValue + newValue;
+          }
+        }
+      }
+    } else {
+      // Add new product to the map
+      productMap.set(product, {
+        name: product,
+        values
+      });
+    }
   }
   
-  // Não ordenar alfabeticamente os produtos da aba CARGA,
-  // mantendo a ordem original como aparece na planilha Excel
+  // Convert map to array while maintaining insertion order
+  const products = Array.from(productMap.values());
+  
+  // Sort alphabetically to match the order from the main data
+  products.sort((a, b) => a.name.localeCompare(b.name));
   
   return products;
 }
