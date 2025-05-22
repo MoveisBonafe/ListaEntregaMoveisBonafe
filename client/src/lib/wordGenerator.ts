@@ -724,14 +724,16 @@ function createTableCell(
   },
   cellOptions: TableCellOptions,
 ) {
-  // Verificar se é um produto Agulha - aplicar negrito e realce amarelo
+  // Verificar se é um produto que precisa de destaque - aplicar negrito e realce amarelo
   const isAgulhaProduct = typeof text === 'string' && text.toLowerCase().includes('agulha');
+  const isCadeiraAltaEstofada = typeof text === 'string' && text.toLowerCase().includes('cadeira alta estofada');
+  const needsHighlight = isAgulhaProduct || isCadeiraAltaEstofada;
   
   // Ensure that bold is properly typed as boolean or undefined
   const isBold: boolean | undefined =
     cellOptions.isHeader === true
       ? true
-      : isAgulhaProduct // Se for um produto Agulha, sempre em negrito
+      : needsHighlight // Se for um produto destacado, sempre em negrito
         ? true
         : cellOptions.bold === true
           ? true
@@ -739,8 +741,8 @@ function createTableCell(
             ? false
             : undefined;
             
-  // Se for produto Agulha, aplicar realce amarelo
-  if (isAgulhaProduct && !cellOptions.highlight) {
+  // Se for produto que precisa de destaque, aplicar realce amarelo
+  if (needsHighlight && !cellOptions.highlight) {
     cellOptions.highlight = 'yellow';
   }
 
