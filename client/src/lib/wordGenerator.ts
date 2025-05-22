@@ -724,15 +724,25 @@ function createTableCell(
   },
   cellOptions: TableCellOptions,
 ) {
+  // Verificar se é um produto Agulha - aplicar negrito e realce amarelo
+  const isAgulhaProduct = typeof text === 'string' && text.toLowerCase().includes('agulha');
+  
   // Ensure that bold is properly typed as boolean or undefined
   const isBold: boolean | undefined =
     cellOptions.isHeader === true
       ? true
-      : cellOptions.bold === true
+      : isAgulhaProduct // Se for um produto Agulha, sempre em negrito
         ? true
-        : cellOptions.bold === false
-          ? false
-          : undefined;
+        : cellOptions.bold === true
+          ? true
+          : cellOptions.bold === false
+            ? false
+            : undefined;
+            
+  // Se for produto Agulha, aplicar realce amarelo
+  if (isAgulhaProduct && !cellOptions.highlight) {
+    cellOptions.highlight = 'yellow';
+  }
 
   // Determine if text should be left-aligned
   const shouldAlignLeft =
