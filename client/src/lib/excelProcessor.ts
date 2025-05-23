@@ -184,11 +184,10 @@ function processTotalData(jsonData: any[][]): ProductData[] {
     }
   }
   
-  // Convert map to array while maintaining insertion order
+  // Convert map to array while maintaining insertion order from Excel
   const products = Array.from(productMap.values());
   
-  // Sort alphabetically to match the order from the main data
-  products.sort((a, b) => a.name.localeCompare(b.name));
+  // Manter a ordem original da aba CARGA (não ordenar alfabeticamente)
   
   return products;
 }
