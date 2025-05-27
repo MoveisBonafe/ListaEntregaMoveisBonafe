@@ -16,6 +16,9 @@ COPY . .
 # Build the application
 RUN npm run build
 
+# Move frontend build to correct location for production server
+RUN mkdir -p dist/public && cp -r dist/* dist/public/ 2>/dev/null || true
+
 # Keep all dependencies since server needs vite in production
 
 # Expose port
