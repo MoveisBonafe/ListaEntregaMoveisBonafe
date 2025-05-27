@@ -1,55 +1,59 @@
-# Móveis Bonafé - Sistema de Lista de Entrega
+# Lista de Entrega - Móveis Bonafé
 
-Aplicação web para transformar planilhas Excel em documentos Word formatados para listas de entrega da Móveis Bonafé.
+Sistema especializado para transformar planilhas Excel em documentos Word formatados para listas de entrega da Móveis Bonafé.
 
-## Sobre o Projeto
+## 🚀 Funcionalidades
 
-Esta aplicação foi desenvolvida para facilitar a geração de documentos de lista de entrega a partir de dados de planilhas Excel. O sistema processa os dados dos clientes e produtos, organiza-os em blocos e gera um documento Word formatado seguindo padrões específicos de layout e formatação.
+- **Upload de Excel**: Processa arquivos das abas "LISTA POR PEDIDO" e "CARGA"
+- **Agrupamento Inteligente**: Produtos duplicados são automaticamente agrupados com valores somados
+- **Formatação Específica**: 50 linhas por lado, margens precisas (2,0cm superior/inferior, 2,5cm lateral)
+- **Destaques Especiais**: Produtos "Agulha", "Cadeira Alta Estofada" e "Kit Parafusos" destacados
+- **Seção TOTAL**: Gerada da aba CARGA mantendo ordem original
+- **Download Automático**: Documento Word gerado instantaneamente
 
-## Funcionalidades
+## 🛠️ Tecnologias
 
-- Upload de arquivos Excel (.xlsx)
-- Processamento automático de dados da aba "LISTA POR PEDIDO" e "CARGA"
-- Ordenação alfabética de produtos dentro de cada bloco de cliente
-- Formatação especial para colunas (destaque em amarelo para colunas TB, destaque em verde para colunas IM)
-- Seção TOTAL após todos os blocos de clientes
-- Download do documento Word formatado
+- **Frontend**: React + TypeScript + Tailwind CSS
+- **Backend**: Express.js + Node.js
+- **Processamento**: xlsx (Excel) + docx (Word)
+- **UI**: shadcn/ui + Radix UI
 
-## Instruções para deploy no GitHub Pages
+## 📋 Como Usar
 
-Para fazer o deploy da aplicação no GitHub Pages, siga estes passos:
+1. Acesse a aplicação
+2. Faça upload do arquivo Excel com as abas:
+   - "LISTA POR PEDIDO" (dados principais)
+   - "CARGA" (seção total)
+3. Aguarde o processamento
+4. Baixe o documento Word formatado
 
-1. Execute o script para gerar os arquivos do build:
-   ```
-   node deploy-to-github.js
-   ```
+## 🏗️ Estrutura dos Dados
 
-2. Faça o download da pasta `dist/github-pages` que será gerada
+### Aba "LISTA POR PEDIDO"
+- Coluna A: Nome do cliente
+- Coluna B: Nome do produto
+- Colunas C-F: Valores (CE, MG, TB, IM)
 
-3. No GitHub:
-   - Crie um novo repositório chamado `moveis-bonafe-lista`
-   - Vá em Settings > Pages
-   - Configure para usar a branch `gh-pages`
-   - Faça upload dos arquivos baixados para esta branch
+### Aba "CARGA"
+- Coluna A: Nome do produto
+- Colunas B-E: Valores totais (CE, MG, TB, IM)
 
-4. Seu site estará disponível em: `https://SEU_USUARIO.github.io/moveis-bonafe-lista/`
+## 🚀 Deploy
 
-## Desenvolvimento
+### Replit
+- Clone este repositório
+- Execute `npm install`
+- Execute `npm run dev`
 
-Para executar o projeto em ambiente de desenvolvimento:
+### Railway
+- Faça push para GitHub
+- Conecte ao Railway
+- Deploy automático com Dockerfile
 
-1. Clone o repositório
-2. Instale as dependências: `npm install`
-3. Inicie o servidor de desenvolvimento: `npm run dev`
+### GitHub Pages
+- Execute `npm run build-github`
+- Deploy nos GitHub Pages
 
-## Tecnologias Utilizadas
+## 📄 Licença
 
-- TypeScript
-- React
-- Tailwind CSS
-- Biblioteca DOCX para geração de documentos Word
-- XLSX para processamento de planilhas Excel
-
-## Licença
-
-MIT# GeradorListaEntregaMoveisBonafe
+MIT License - Desenvolvido para Móveis Bonafé
