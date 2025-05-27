@@ -1,0 +1,111 @@
+You reached the start of the range → May 26, 2025 9:46 PM
+
+ 
+
+[Region: us-east4]
+
+=========================
+
+Using Detected Dockerfile
+
+=========================
+
+
+context: c6n0-Sa9d
+
+[internal] load build definition from Dockerfile
+
+[internal] load build definition from Dockerfile
+
+[internal] load build definition from Dockerfile  ✔ 0ms
+
+[internal] load build definition from Dockerfile
+
+[internal] load build definition from Dockerfile  ✔ 12ms
+
+[internal] load metadata for docker.io/library/node:20-alpine
+
+[auth] library/node:pull token for registry-1.docker.io
+
+[auth] library/node:pull token for registry-1.docker.io  ✔ 0ms
+
+[internal] load metadata for docker.io/library/node:20-alpine  ✔ 122ms
+
+[internal] load .dockerignore
+
+[internal] load .dockerignore  ✔ 0ms
+
+[internal] load .dockerignore
+
+[internal] load .dockerignore  ✔ 12ms
+
+[2/6] WORKDIR /app
+
+[1/6] FROM docker.io/library/node:20-alpine@sha256:be56e91681a8ec1bba91e3006039bd228dc797fd984794a3efedab325b36e679
+
+[6/6] RUN npm run build
+
+[5/6] COPY . .
+
+[4/6] RUN npm ci --only=production
+
+[3/6] COPY package*.json ./
+
+[internal] load build context
+
+[1/6] FROM docker.io/library/node:20-alpine@sha256:be56e91681a8ec1bba91e3006039bd228dc797fd984794a3efedab325b36e679
+
+[internal] load build context  ✔ 0ms
+
+[1/6] FROM docker.io/library/node:20-alpine@sha256:be56e91681a8ec1bba91e3006039bd228dc797fd984794a3efedab325b36e679  ✔ 9ms
+
+[2/6] WORKDIR /app  ✔ 1ms – CACHED
+
+[internal] load build context
+
+[internal] load build context  ✔ 34ms
+
+[3/6] COPY package*.json ./
+
+[3/6] COPY package*.json ./  ✔ 236ms
+
+[4/6] RUN npm ci --only=production
+
+npm warn config only Use `--omit=dev` to omit dev dependencies from the install.
+
+
+added 434 packages, and audited 435 packages in 6s
+
+
+58 packages are looking for funding
+
+  run `npm fund` for details
+
+
+1 high severity vulnerability
+
+Some issues need review, and may require choosing
+a different dependency.
+
+Run `npm audit` for details.
+
+npm notice
+npm notice New major version of npm available! 10.8.2 -> 11.4.1
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.4.1
+npm notice To update run: npm install -g npm@11.4.1
+npm notice
+
+[4/6] RUN npm ci --only=production  ✔ 6s
+
+[5/6] COPY . .
+
+[5/6] COPY . .  ✔ 142ms
+
+[6/6] RUN npm run build
+
+
+> rest-express@1.0.0 build
+> vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist
+
+
+sh: vite: not found
