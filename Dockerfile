@@ -16,8 +16,7 @@ COPY . .
 # Build the application
 RUN npm run build
 
-# Remove dev dependencies after build
-RUN npm prune --production
+# Keep all dependencies since server needs vite in production
 
 # Expose port
 EXPOSE 5000

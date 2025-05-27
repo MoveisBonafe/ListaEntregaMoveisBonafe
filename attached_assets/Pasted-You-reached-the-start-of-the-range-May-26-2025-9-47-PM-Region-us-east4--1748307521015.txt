@@ -1,0 +1,109 @@
+You reached the start of the range → May 26, 2025 9:47 PM
+
+ 
+
+[Region: us-east4]
+
+=========================
+
+Using Detected Dockerfile
+
+=========================
+
+
+context: 3jj0-He1B
+
+[internal] load build definition from Dockerfile
+
+[internal] load build definition from Dockerfile
+
+[internal] load build definition from Dockerfile  ✔ 0ms
+
+[internal] load build definition from Dockerfile
+
+[internal] load build definition from Dockerfile  ✔ 11ms
+
+[internal] load metadata for docker.io/library/node:20-alpine
+
+[internal] load metadata for docker.io/library/node:20-alpine  ✔ 212ms
+
+[internal] load .dockerignore
+
+[internal] load .dockerignore  ✔ 0ms
+
+[internal] load .dockerignore
+
+[internal] load .dockerignore  ✔ 11ms
+
+[7/7] RUN npm prune --production
+
+[6/7] RUN npm run build
+
+[5/7] COPY . .
+
+[4/7] RUN npm ci
+
+[3/7] COPY package*.json ./
+
+[internal] load build context
+
+[2/7] WORKDIR /app
+
+[1/7] FROM docker.io/library/node:20-alpine@sha256:be56e91681a8ec1bba91e3006039bd228dc797fd984794a3efedab325b36e679
+
+[1/7] FROM docker.io/library/node:20-alpine@sha256:be56e91681a8ec1bba91e3006039bd228dc797fd984794a3efedab325b36e679
+
+[internal] load build context  ✔ 0ms
+
+[1/7] FROM docker.io/library/node:20-alpine@sha256:be56e91681a8ec1bba91e3006039bd228dc797fd984794a3efedab325b36e679  ✔ 5ms
+
+[1/7] FROM docker.io/library/node:20-alpine@sha256:be56e91681a8ec1bba91e3006039bd228dc797fd984794a3efedab325b36e679
+
+[1/7] FROM docker.io/library/node:20-alpine@sha256:be56e91681a8ec1bba91e3006039bd228dc797fd984794a3efedab325b36e679  ✔ 0ms
+
+[1/7] FROM docker.io/library/node:20-alpine@sha256:be56e91681a8ec1bba91e3006039bd228dc797fd984794a3efedab325b36e679
+
+[internal] load build context
+
+[1/7] FROM docker.io/library/node:20-alpine@sha256:be56e91681a8ec1bba91e3006039bd228dc797fd984794a3efedab325b36e679  ✔ 28ms
+
+[1/7] FROM docker.io/library/node:20-alpine@sha256:be56e91681a8ec1bba91e3006039bd228dc797fd984794a3efedab325b36e679
+
+[internal] load build context  ✔ 48ms
+
+[1/7] FROM docker.io/library/node:20-alpine@sha256:be56e91681a8ec1bba91e3006039bd228dc797fd984794a3efedab325b36e679  ✔ 265ms
+
+[2/7] WORKDIR /app
+
+[2/7] WORKDIR /app  ✔ 257ms
+
+[3/7] COPY package*.json ./
+
+[3/7] COPY package*.json ./  ✔ 29ms
+
+[4/7] RUN npm ci
+
+npm warn deprecated @esbuild-kit/core-utils@3.3.2: Merged into tsx: https://tsx.is
+
+npm warn deprecated @esbuild-kit/esm-loader@2.6.5: Merged into tsx: https://tsx.is
+
+
+added 541 packages, and audited 542 packages in 7s
+
+
+70 packages are looking for funding
+  run `npm fund` for details
+
+
+8 vulnerabilities (7 moderate, 1 high)
+
+To address issues that do not require attention, run:
+  npm audit fix
+
+To address all issues possible (including breaking changes), run:
+  npm audit fix --force
+
+Some issues need review, and may require choosing
+a different dependency.
+
+Run `npm audit` for details.
